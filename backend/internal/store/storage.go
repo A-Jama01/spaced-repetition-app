@@ -7,16 +7,16 @@ import (
 
 type Storage struct {
 	Decks interface {
-		Create(context.Context) error
+		CreateDeck(context.Context, *Deck) error
 	}
 	Cards interface {
-		Create(context.Context) error
+		CreateCard(context.Context, *Card) error
 	}
 	Logs interface {
-		Create(context.Context) error
+		CreateLog(context.Context, *Logs) error
 	}
 	Users interface {
-		Create(context.Context) error
+		CreateUser(context.Context, *User) error
 	}
 }
 

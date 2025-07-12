@@ -11,7 +11,7 @@ type T float64
 type R float64
 type S float64
 type D float64
-type Grade int
+type Grade int64
 
 const (
 	Again Grade = iota + 1
