@@ -12,10 +12,10 @@ func main() {
 	cfg := config {
 		addr: env.GetString("ADDR", ":3001"),
 		db: dbConfig{
-			addr: env.GetString("DB_ADDR", "postgres://user:adminpassword@localhost/spaced-repetition-app?sslmode=disable"),
+			addr: env.GetString("DB_ADDR", "postgres://admin:adminpassword@localhost/spaced-repetition?sslmode=disable"),
 			maxOpenConns: env.GetInt("DB_MAX_OPEN_CONNS", 30),
 			maxIdleConns: env.GetInt("DB_MAX_OPEN_CONNS", 30),
-			maxIdleTime: env.GetString("DB_MAX_IDLE_TIME", "15mins"),
+			maxIdleTime: env.GetString("DB_MAX_IDLE_TIME", "15m"),
 		},
 	}
 
@@ -28,6 +28,9 @@ func main() {
 	if err != nil {
 		log.Panic(err)
 	}
+
+	defer db.Close()
+	log.Println("Database connected")
 
 	store := store.NewStorage(db)
 
