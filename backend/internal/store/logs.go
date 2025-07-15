@@ -8,10 +8,10 @@ import (
 )
 
 type Logs struct {
-    ID int64    
-    CardID int64
-    ReviewDate time.Time
-    Grade internal.Grade
+	ID int64 `json:"id"`
+    CardID int64 `json:"card_id"`
+    ReviewDate time.Time `json:"review_date"`
+    Grade internal.Grade `json:"grade"`
 }
 
 type LogsStore struct {

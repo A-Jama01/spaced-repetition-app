@@ -7,10 +7,10 @@ import (
 )
 
 type User struct {
-	ID int64
-	GoogleID string			
-	Username string	
-	CreatedAt time.Time
+	ID int64 `json:"id"`
+	GoogleID string `json:"google_id"`
+	Username string	`json:"username"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type UsersStore struct {
@@ -19,17 +19,17 @@ type UsersStore struct {
 
 func (userStore *UsersStore) CreateUser(ctx context.Context, user *User) error {
 	query := `
-		INSERT into users (google_id, username, created_at)
-		VALUES ($1, $2, $3) RETURNING id
+		INSERT into users (google_id, username)
+		VALUES ($1, $2) RETURNING id, created_at
 	`
 	err := userStore.db.QueryRowContext(
 		ctx,
 		query,
 		user.GoogleID,	
 		user.Username,
-		user.CreatedAt,
 	).Scan(
 		&user.ID,
+		&user.CreatedAt,
 	)
 	if err != nil {
 		return err
