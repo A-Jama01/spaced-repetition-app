@@ -23,7 +23,7 @@ type CardsStore struct {
 	db *sql.DB
 }
 
-func (cardStore *CardsStore) CreateCard(ctx context.Context, card *Card) error {
+func (cardStore *CardsStore) Create(ctx context.Context, card *Card) error {
 	query := `
 		INSERT INTO cards (deck_id, front, back, retrievability, stability, difficulty, due, 
 		weights) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id

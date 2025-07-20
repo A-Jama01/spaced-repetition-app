@@ -29,12 +29,42 @@ type dbConfig struct {
 
 func (app *app) mount() http.Handler {
 	r := chi.NewRouter()
+
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Logger)
-	r.Route("/v1/", func(r chi.Router) {
-		r.Get("/hello", func(w http.ResponseWriter, r *http.Request) {
-			w.Write([]byte("Hello World!"))
-		})	
+
+	r.Route("/api", func(r chi.Router) {
+		r.Route("/v1", func(r chi.Router) {
+			r.Route("/auth", func(r chi.Router){
+				r.Post("/register", registerHandler)	
+				r.Post("/login", loginHandler)	
+			})
+
+			r.Route("/decks", func(r chi.Router) {
+				r.Get("/", listDecksHandler)
+				r.Post("/", createDeck)
+				r.Route("/{id}", func(r chi.Router) {
+					r.Get("/", getDeckHandler)
+					r.Get("/due", getDueCardsHandler)
+					r.Delete("/", deleteDeckByIDHandler)
+					r.Patch("/", updateDeckByIDHandler)
+				})
+			})
+			
+			r.Route("/cards", func(r chi.Router) {
+				r.Get("/", listCardsHander)
+				r.Post("/", createCardHandler)
+				r.Route("/{id}", func(r chi.Router) {
+					r.Delete("/", deleteCardByIDHandler)
+					r.Patch("/", updateCardByIDHandler)
+					r.Patch("/review", reviewCardByIDHandler)
+				})	
+			})
+
+			r.Route("/stats", func(r chi.Router) {
+				r.Get("/", listStatsHandler)
+			})
+		})
 	})
 
 	return r

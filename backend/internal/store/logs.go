@@ -18,7 +18,7 @@ type LogsStore struct {
 	db *sql.DB
 }
 
-func (logsStore *LogsStore) CreateLog(ctx context.Context, logs * Logs) error {
+func (logsStore *LogsStore) Create(ctx context.Context, logs * Logs) error {
 	query := `
 		INSERT INTO logs (card_id, review_date, grade)
 		VALUES ($1, $2, $3) RETURNING id

@@ -15,7 +15,7 @@ type DecksStore struct {
 	db *sql.DB
 }
 
-func (s *DecksStore) CreateDeck(ctx context.Context, deck *Deck) error {
+func (s *DecksStore) Create(ctx context.Context, deck *Deck) error {
 	query := `
 		INSERT INTO decks (user_id, name)
 		VALUES ($1, $2) RETURNING id 
