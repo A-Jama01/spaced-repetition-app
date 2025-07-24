@@ -40,5 +40,5 @@ func main() {
 		store: store,
 	}
 
-	log.Fatal(app.run(app.mount()))
+	log.Fatal(app.run(app.routes()))
 }
