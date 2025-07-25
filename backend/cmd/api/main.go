@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/A-Jama01/spaced-repetition-app/internal/db"
 	"github.com/A-Jama01/spaced-repetition-app/internal/env"
@@ -34,11 +35,15 @@ func main() {
 	log.Println("Database connected")
 
 	store := store.NewStorage(db)
+	
+	logger := log.New(os.Stdout, "", log.Ldate | log.Ltime)
 
 	app := &app {
 		config: cfg,
 		store: store,
+		logger: logger,
 	}
 
-	log.Fatal(app.run(app.routes()))
+	err = app.run(app.routes())
+	logger.Fatal(err)
 }

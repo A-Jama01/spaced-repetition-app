@@ -14,6 +14,7 @@ import (
 type app struct {
 	config config
 	store store.Storage
+	logger *log.Logger
 }
 
 type config struct {
@@ -31,6 +32,9 @@ type dbConfig struct {
 
 func (app *app) routes() http.Handler {
 	r := chi.NewRouter()
+	
+	r.NotFound(http.HandlerFunc(app.notFoundResponse))
+	r.MethodNotAllowed(http.HandlerFunc(app.methodNotAllowed))
 
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Logger)
