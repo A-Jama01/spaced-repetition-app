@@ -4,10 +4,13 @@ import (
 	"log"
 	"net/http"
 	"time"
+
 	"github.com/A-Jama01/spaced-repetition-app/internal/store"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/jwtauth/v5"
+	"github.com/go-playground/validator/v10"
 	//"github.com/go-chi/jwtauth"
 )
 
@@ -15,6 +18,8 @@ type app struct {
 	config config
 	store store.Storage
 	logger *log.Logger
+	validate *validator.Validate
+	jwtAuth  *jwtauth.JWTAuth
 }
 
 type config struct {
@@ -23,7 +28,7 @@ type config struct {
 }
 
 type dbConfig struct {
-	addr string
+	dsn string
 	maxOpenConns int
 	maxIdleConns int
 	maxIdleTime string
@@ -47,44 +52,44 @@ func (app *app) routes() http.Handler {
 		MaxAge: 300,
 	}))
 
-	r.Route("/api", func(r chi.Router) {
-		r.Route("/v1", func(r chi.Router) {
+	r.Route("/v1", func(r chi.Router) {
 
-			//Public routes
-			r.Group(func(r chi.Router) {
-				r.Route("/auth", func(r chi.Router){
-					r.Post("/register", app.registerHandler)	
-					r.Post("/login", app.loginHandler)	
-					r.Post("/logout", app.logoutHandler)
+		//Public routes
+		r.Group(func(r chi.Router) {
+			r.Route("/auth", func(r chi.Router){
+				r.Post("/register", app.registerHandler)	
+				r.Post("/login", app.loginHandler)	
+			})
+		})
+
+		//Protected routes
+		r.Group(func(r chi.Router) {
+			r.Use(jwtauth.Verifier(app.jwtAuth))
+			r.Use(jwtauth.Authenticator(app.jwtAuth))
+
+			r.Route("/decks", func(r chi.Router) {
+				r.Get("/", app.listDecksHandler)
+				r.Post("/", app.createDeck)
+				r.Route("/{deck_id}", func(r chi.Router) {
+					r.Get("/", app.showDeckHandler)
+					r.Get("/due", app.showDueCardsHandler)
+					r.Delete("/", app.deleteDeckHandler)
+					r.Put("/", app.updateDeckHandler)
 				})
 			})
 
-			//Protected routes
-			r.Group(func(r chi.Router) {
-				r.Route("/decks", func(r chi.Router) {
-					r.Get("/", app.listDecksHandler)
-					r.Post("/", app.createDeck)
-					r.Route("/{deck_id}", func(r chi.Router) {
-						r.Get("/", app.showDeckHandler)
-						r.Get("/due", app.showDueCardsHandler)
-						r.Delete("/", app.deleteDeckHandler)
-						r.Put("/", app.updateDeckHandler)
-					})
-				})
+			r.Route("/cards", func(r chi.Router) {
+				r.Get("/", app.listCardsHander)
+				r.Post("/", app.createCardHandler)
+				r.Route("/{card_id}", func(r chi.Router) {
+					r.Delete("/", app.deleteCardHandler)
+					r.Put("/", app.editCardHandler)
+					r.Patch("/review", app.reviewCardHandler)
+				})	
+			})
 
-				r.Route("/cards", func(r chi.Router) {
-					r.Get("/", app.listCardsHander)
-					r.Post("/", app.createCardHandler)
-					r.Route("/{card_id}", func(r chi.Router) {
-						r.Delete("/", app.deleteCardHandler)
-						r.Put("/", app.editCardHandler)
-						r.Patch("/review", app.reviewCardHandler)
-					})	
-				})
-
-				r.Route("/stats", func(r chi.Router) {
-					r.Get("/", app.listStatsHandler)
-				})
+			r.Route("/stats", func(r chi.Router) {
+				r.Get("/", app.listStatsHandler)
 			})
 		})
 	})

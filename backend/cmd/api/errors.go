@@ -19,7 +19,6 @@ func (app *app) errorResponse(w http.ResponseWriter, r *http.Request, status int
 	}
 }
 
-
 func (app *app) serverErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.logError(r, err)
 
@@ -35,4 +34,8 @@ func (app *app) notFoundResponse(w http.ResponseWriter, r *http.Request) {
 func (app *app) methodNotAllowed(w http.ResponseWriter, r *http.Request) {
 	message := fmt.Sprintf("The %s method is not supported for this resource", r.Method)
 	app.errorResponse(w, r, http.StatusMethodNotAllowed, message)
+}
+
+func (app *app) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
+	app.errorResponse(w, r, http.StatusBadRequest, err.Error())
 }

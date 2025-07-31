@@ -6,8 +6,8 @@ import (
 	"time"
 )
 
-func New(addr string, maxOpenConn int, maxIdleConn int, maxIdleTime string) (*sql.DB, error) {
-	db, err := sql.Open("postgres", addr)
+func New(dsn string, maxOpenConn int, maxIdleConn int, maxIdleTime string) (*sql.DB, error) {
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		return nil, err
 	}

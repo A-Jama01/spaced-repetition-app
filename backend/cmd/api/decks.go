@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-
 	"github.com/A-Jama01/spaced-repetition-app/internal/store"
 	"github.com/go-chi/chi/v5"
 )
@@ -14,6 +13,24 @@ func (app *app) listDecksHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *app) createDeck(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		ID int64 `json:"id" validate:"required"` 
+		UserID int64 `json:"user_id" validate:"required"`
+		Name string `json:"name" validate:"required"`
+	}
+	err := app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+	
+	err = app.validate.Struct(input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	fmt.Fprintf(w, "%+v\n", input)
 }
 
 func (app *app) showDeckHandler(w http.ResponseWriter, r *http.Request) {
