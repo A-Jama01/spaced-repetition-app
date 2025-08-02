@@ -3,6 +3,11 @@ package store
 import (
 	"context"
 	"database/sql"
+	"errors"
+)
+
+var (
+	ErrRecordNotFound = errors.New("Record not found")
 )
 
 type Storage struct {
@@ -17,6 +22,7 @@ type Storage struct {
 	}
 	Users interface {
 		Create(context.Context, *User) error
+		GetByUsername(context.Context, string) (*User, error)
 	}
 }
 

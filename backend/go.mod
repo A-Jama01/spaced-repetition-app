@@ -8,6 +8,7 @@ require (
 	github.com/go-chi/jwtauth/v5 v5.3.3
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/lib/pq v1.10.9
+	golang.org/x/crypto v0.40.0
 )
 
 require (
@@ -24,8 +25,7 @@ require (
 	github.com/lestrrat-go/jwx/v2 v2.1.3 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
 	github.com/segmentio/asm v1.2.0 // indirect
-	golang.org/x/crypto v0.33.0 // indirect
-	golang.org/x/net v0.34.0 // indirect
-	golang.org/x/sys v0.30.0 // indirect
-	golang.org/x/text v0.22.0 // indirect
+	golang.org/x/net v0.41.0 // indirect
+	golang.org/x/sys v0.34.0 // indirect
+	golang.org/x/text v0.27.0 // indirect
 )
