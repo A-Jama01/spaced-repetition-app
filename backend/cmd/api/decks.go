@@ -1,63 +1,140 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
+
 	"github.com/A-Jama01/spaced-repetition-app/internal/store"
 	"github.com/go-chi/chi/v5"
 )
 
+type DeckInput struct {
+	Name string `json:"name" validate:"required,min=1,max=70"`
+}
+
 func (app *app) listDecksHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "list all decks")
+	ctx := r.Context()
+	
+	userID, err := app.getUserIDFromContext(ctx)	
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+
+	decks, err := app.store.Decks.GetByUserID(ctx, userID)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"decks": decks}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 }
 
 func (app *app) createDeck(w http.ResponseWriter, r *http.Request) {
-	var input struct {
-		ID int64 `json:"id" validate:"required"` 
-		UserID int64 `json:"user_id" validate:"required"`
-		Name string `json:"name" validate:"required"`
-	}
+	var input DeckInput
+
 	err := app.readJSON(w, r, &input)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
 	}
-	
+
 	err = app.validate.Struct(input)
 	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
 	}
 
-	fmt.Fprintf(w, "%+v\n", input)
+	ctx := r.Context()
+	
+	userID, err := app.getUserIDFromContext(ctx)	
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	deck := &store.Deck{
+		UserID: userID,
+		Name: input.Name,
+	}
+	
+	err = app.store.Decks.Create(ctx, deck)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusCreated, envelope{"deck": deck}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 }
 
-func (app *app) showDeckHandler(w http.ResponseWriter, r *http.Request) {
+func (app *app) deleteDeckHandler(w http.ResponseWriter, r *http.Request) {
 	deckIDParam := chi.URLParam(r, "deck_id")
-	deckID, err := strconv.Atoi(deckIDParam)
+	deckID, err := strconv.ParseInt(deckIDParam, 10, 64)
 	if err != nil {
-		app.notFoundResponse(w, r)
+		app.badRequestResponse(w, r, err)
 		return
 	}
 	
-	deck := store.Deck{
-		ID:  int64(deckID),
-		UserID: 1,
-		Name: "Algorithms",
+	ctx := r.Context()
+	err = app.store.Decks.DeleteByDeckID(ctx, int64(deckID))
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
 	}
-
-	err = app.writeJSON(w, http.StatusOK, envolope{"deck": deck}, nil)
+	
+	err = app.writeJSON(w, http.StatusOK, envelope{"message": "Deck deleted successfully"}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
 }
 
-func (app *app) showDueCardsHandler(w http.ResponseWriter, r *http.Request) {
-}
-
-func (app *app) deleteDeckHandler(w http.ResponseWriter, r *http.Request) {
-}
-
 func (app *app) updateDeckHandler(w http.ResponseWriter, r *http.Request) {
+	deckIDParam := chi.URLParam(r, "deck_id")
+	deckID, err := strconv.ParseInt(deckIDParam, 10, 64)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	ctx := r.Context()
+	deck, err := app.store.Decks.GetByDeckID(ctx, deckID)
+	if err != nil {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	var input DeckInput 
+
+	err = app.readJSON(w, r, &input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	err = app.validate.Struct(input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	deck.Name = input.Name
+	
+	err = app.store.Decks.Update(ctx, deck)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"deck": deck}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 }

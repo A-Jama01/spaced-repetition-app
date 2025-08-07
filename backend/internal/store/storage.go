@@ -13,6 +13,10 @@ var (
 type Storage struct {
 	Decks interface {
 		Create(context.Context, *Deck) error
+		GetByDeckID(context.Context, int64) (*Deck, error)
+		GetByUserID(context.Context, int64) ([]*Deck, error)
+		DeleteByDeckID(context.Context, int64) error
+		Update(context.Context, *Deck) error
 	}
 	Cards interface {
 		Create(context.Context, *Card) error

@@ -53,7 +53,6 @@ func (app *app) routes() http.Handler {
 	}))
 
 	r.Route("/v1", func(r chi.Router) {
-
 		//Public routes
 		r.Group(func(r chi.Router) {
 			r.Route("/auth", func(r chi.Router){
@@ -71,8 +70,6 @@ func (app *app) routes() http.Handler {
 				r.Get("/", app.listDecksHandler)
 				r.Post("/", app.createDeck)
 				r.Route("/{deck_id}", func(r chi.Router) {
-					r.Get("/", app.showDeckHandler)
-					r.Get("/due", app.showDueCardsHandler)
 					r.Delete("/", app.deleteDeckHandler)
 					r.Put("/", app.updateDeckHandler)
 				})

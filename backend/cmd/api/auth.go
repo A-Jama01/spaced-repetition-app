@@ -54,7 +54,7 @@ func (app *app) registerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusCreated, envolope{"auth_token": tokenString}, nil)	
+	err = app.writeJSON(w, http.StatusCreated, envelope{"auth_token": tokenString}, nil)	
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
@@ -103,7 +103,7 @@ func (app *app) loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envolope{"auth_token": tokenString}, nil)	
+	err = app.writeJSON(w, http.StatusOK, envelope{"auth_token": tokenString}, nil)	
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}

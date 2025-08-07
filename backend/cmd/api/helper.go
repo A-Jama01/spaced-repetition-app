@@ -1,13 +1,20 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
+	"github.com/go-chi/jwtauth/v5"
 )
 
-type envolope map[string]any
+var (
+	ErrUserIDNotFloat64 = errors.New("User ID is not a float64")
+)
 
-func (app *app) writeJSON(w http.ResponseWriter, status int, data envolope, headers http.Header) error {
+type envelope map[string]any
+
+func (app *app) writeJSON(w http.ResponseWriter, status int, data envelope, headers http.Header) error {
 	js, err := json.MarshalIndent(data, "", "\t")
 	if err != nil {
 		return err
@@ -35,4 +42,20 @@ func (app *app) readJSON(w http.ResponseWriter, r *http.Request, data any) error
 	dec.DisallowUnknownFields()
 
 	return dec.Decode(data)
+}
+
+func (app *app) getUserIDFromContext(ctx context.Context) (int64, error) {
+	_, claims, err := jwtauth.FromContext(ctx)
+	if err != nil {
+		return 0, err
+	}
+
+	floatUserID, ok := claims["user_id"].(float64)
+	if !ok {
+		return 0, ErrUserIDNotFloat64
+	}
+
+	userID := int64(floatUserID)
+
+	return userID, nil
 }
