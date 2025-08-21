@@ -14,12 +14,17 @@ type Storage struct {
 	Decks interface {
 		Create(context.Context, *Deck) error
 		GetByDeckID(context.Context, int64) (*Deck, error)
-		GetByUserID(context.Context, int64) ([]*Deck, error)
+		ListByUserID(context.Context, int64) ([]*Deck, error)
 		DeleteByDeckID(context.Context, int64) error
 		Update(context.Context, *Deck) error
 	}
 	Cards interface {
 		Create(context.Context, *Card) error
+		ListByDeck(context.Context, int64) ([]*Card, error)
+		ListDueCards(context.Context, int64) ([]*Card, error)
+		Delete(ctx context.Context, cardID, deckID int64) error
+		Get(ctx context.Context, cardID, deckID int64) (*Card, error)
+		Update(context.Context, *Card) error
 	}
 	Logs interface {
 		Create(context.Context, *Logs) error

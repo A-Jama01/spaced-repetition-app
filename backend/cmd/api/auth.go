@@ -46,7 +46,7 @@ func (app *app) registerHandler(w http.ResponseWriter, r *http.Request) {
 	claims := map[string]interface{}{
 		"user_id": user.ID,
 		"username": user.Username,
-		"exp": time.Now().Add(24 * time.Hour).Unix(),
+		"exp": time.Now().Add(3 * 24 * time.Hour).Unix(),
 	}
 	_, tokenString, err := app.jwtAuth.Encode(claims)
 	if err != nil {
@@ -95,7 +95,7 @@ func (app *app) loginHandler(w http.ResponseWriter, r *http.Request) {
 	claims := map[string]interface{}{
 		"user_id": user.ID,
 		"username": user.Username,
-		"exp": time.Now().Add(24 * time.Hour).Unix(),
+		"exp": time.Now().Add(3 * 24 * time.Hour).Unix(),
 	}
 	_, tokenString, err := app.jwtAuth.Encode(claims)
 	if err != nil {

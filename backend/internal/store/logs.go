@@ -4,21 +4,20 @@ import (
 	"context"
 	"database/sql"
 	"time"
-	"github.com/A-Jama01/spaced-repetition-app/internal"
 )
 
 type Logs struct {
 	ID int64 `json:"id"`
     CardID int64 `json:"card_id"`
     ReviewDate time.Time `json:"review_date"`
-    Grade internal.Grade `json:"grade"`
+    Grade int64 `json:"grade"`
 }
 
 type LogsStore struct {
 	db *sql.DB
 }
 
-func (logsStore *LogsStore) Create(ctx context.Context, logs * Logs) error {
+func (logsStore *LogsStore) Create(ctx context.Context, logs *Logs) error {
 	query := `
 		INSERT INTO logs (card_id, review_date, grade)
 		VALUES ($1, $2, $3) RETURNING id

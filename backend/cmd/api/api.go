@@ -72,17 +72,18 @@ func (app *app) routes() http.Handler {
 				r.Route("/{deck_id}", func(r chi.Router) {
 					r.Delete("/", app.deleteDeckHandler)
 					r.Put("/", app.updateDeckHandler)
-				})
-			})
 
-			r.Route("/cards", func(r chi.Router) {
-				r.Get("/", app.listCardsHander)
-				r.Post("/", app.createCardHandler)
-				r.Route("/{card_id}", func(r chi.Router) {
-					r.Delete("/", app.deleteCardHandler)
-					r.Put("/", app.editCardHandler)
-					r.Patch("/review", app.reviewCardHandler)
-				})	
+					r.Route("/cards", func(r chi.Router) {
+						r.Get("/", app.listCardsHander)
+						r.Get("/due", app.listDueCardsHandler)
+						r.Post("/", app.createCardHandler)
+						r.Route("/{card_id}", func(r chi.Router) {
+							r.Delete("/", app.deleteCardHandler)
+							r.Patch("/", app.updateCardHandler)
+							r.Patch("/review", app.reviewCardHandler)
+						})	
+					})
+				})
 			})
 
 			r.Route("/stats", func(r chi.Router) {

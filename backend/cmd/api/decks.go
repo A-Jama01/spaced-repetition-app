@@ -20,7 +20,7 @@ func (app *app) listDecksHandler(w http.ResponseWriter, r *http.Request) {
 		app.serverErrorResponse(w, r, err)
 	}
 
-	decks, err := app.store.Decks.GetByUserID(ctx, userID)
+	decks, err := app.store.Decks.ListByUserID(ctx, userID)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

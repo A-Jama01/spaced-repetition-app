@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"time"
+	_ "github.com/lib/pq"
 )
 
 func New(dsn string, maxOpenConn int, maxIdleConn int, maxIdleTime string) (*sql.DB, error) {

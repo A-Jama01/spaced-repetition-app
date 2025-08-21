@@ -22,6 +22,9 @@ func (s *DecksStore) Create(ctx context.Context, deck *Deck) error {
 	INSERT INTO decks (user_id, name)
 	VALUES ($1, $2) RETURNING id, created_at`
 
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	err := s.db.QueryRowContext(
 		ctx,
 		query,
@@ -61,7 +64,7 @@ func (s *DecksStore) GetByDeckID(ctx context.Context, deckID int64) (*Deck, erro
 	return &deck, nil
 }
 
-func (s *DecksStore) GetByUserID(ctx context.Context, userID int64) ([]*Deck, error) {
+func (s *DecksStore) ListByUserID(ctx context.Context, userID int64) ([]*Deck, error) {
 	query := `
 	SELECT * FROM decks 
 	WHERE user_id = $1`
