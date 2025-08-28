@@ -1,0 +1,7 @@
+CREATE TABLE logs (
+    id BIGSERIAL PRIMARY KEY,
+    card_id BIGINT NOT NULL,
+    grade SMALLINT NOT NULL CHECK (grade BETWEEN 1 AND 4),
+    reviewed_at TIMESTAMPTZ(0) NOT NULL DEFAULT NOW(),
+    CONSTRAINT fk_card_id FOREIGN KEY (card_id) REFERENCES cards (id) ON DELETE CASCADE
+)

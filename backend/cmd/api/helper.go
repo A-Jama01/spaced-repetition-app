@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"net/url"
+	"strconv"
+
 	"github.com/go-chi/jwtauth/v5"
 )
 
@@ -58,4 +61,27 @@ func (app *app) getUserIDFromContext(ctx context.Context) (int64, error) {
 	userID := int64(floatUserID)
 
 	return userID, nil
+}
+
+func (app *app) readString(queryString url.Values, key string, defaultValue string) string {
+	s := queryString.Get(key)
+	if s == "" {
+		return defaultValue
+	}
+
+	return s
+}
+
+func (app *app) readInt(queryString url.Values, key string, defaultValue int64) int64 {
+	s := queryString.Get(key)		
+	if s == "" {
+		return defaultValue
+	}
+
+	i, err := strconv.Atoi(s)
+	if err != nil {
+		return defaultValue
+	}
+
+	return int64(i)
 }

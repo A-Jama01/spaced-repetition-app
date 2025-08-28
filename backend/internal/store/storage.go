@@ -25,9 +25,13 @@ type Storage struct {
 		Delete(ctx context.Context, cardID, deckID int64) error
 		Get(ctx context.Context, cardID, deckID int64) (*Card, error)
 		Update(context.Context, *Card) error
+		GetDueForecast(context.Context, StatsQueryParams) ([]*DueForecast, error)
 	}
 	Logs interface {
 		Create(context.Context, *Logs) error
+		GetCount(context.Context, StatsQueryParams) (int64, error)
+		GetRetention(context.Context, StatsQueryParams) (float64, error)
+		GetHeatMap(context.Context, StatsQueryParams) ([]*ReviewCell, error)
 	}
 	Users interface {
 		Create(context.Context, *User) error

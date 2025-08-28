@@ -23,6 +23,11 @@ type CardsStore struct {
 	db *sql.DB
 }
 
+type DueForecast struct {
+	DueDate time.Time `json:"due_date"`
+	DueCount int64 `json:"due_count"`
+}
+
 func (cardStore *CardsStore) Create(ctx context.Context, card *Card) error {
 	query := `
 	INSERT INTO cards (deck_id, front, back) 
@@ -224,4 +229,40 @@ func (s *CardsStore) Update(ctx context.Context, card *Card) error {
 	}
 
 	return nil
+}
+
+func (s *CardsStore) GetDueForecast(ctx context.Context, p StatsQueryParams) ([]*DueForecast, error) {
+	query := `
+	SELECT DATE(c.due AT TIME ZONE $1) AS due_date, COUNT(*) AS count FROM cards c
+	JOIN decks d ON c.deck_id = d.id
+	JOIN users u ON d.user_id = u.id
+	WHERE u.id = $2
+	AND ($3 = '' OR d.name = $3)
+	AND DATE(c.due AT TIME ZONE $1) < DATE(NOW() AT TIME ZONE $1) + interval '1 month'
+	AND DATE(c.due AT TIME ZONE $1) >= DATE(NOW() AT TIME ZONE $1)
+	GROUP BY due_date
+	ORDER BY due_date`
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	rows, err := s.db.QueryContext(ctx, query, p.TimeZone, p.UserID, p.DeckName)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var forecasts []*DueForecast
+	for rows.Next() {
+		var forecast DueForecast
+
+		err = rows.Scan(&forecast.DueDate, &forecast.DueCount)
+		if err != nil {
+			return nil, err
+		}
+
+		forecasts = append(forecasts, &forecast)
+	}
+
+	return forecasts, nil
 }

@@ -43,7 +43,7 @@ func (app *app) registerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	claims := map[string]interface{}{
+	claims := map[string]any {
 		"user_id": user.ID,
 		"username": user.Username,
 		"exp": time.Now().Add(3 * 24 * time.Hour).Unix(),
@@ -92,7 +92,7 @@ func (app *app) loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claims := map[string]interface{}{
+	claims := map[string]any {
 		"user_id": user.ID,
 		"username": user.Username,
 		"exp": time.Now().Add(3 * 24 * time.Hour).Unix(),

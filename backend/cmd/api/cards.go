@@ -228,6 +228,17 @@ func (app *app) reviewCardHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	logs := &store.Logs{
+		CardID: card.ID,
+		Grade: input.Grade,
+	}
+
+	err = app.store.Logs.Create(ctx, logs)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
 	err = app.writeJSON(w, http.StatusOK, envelope{"card": card}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
