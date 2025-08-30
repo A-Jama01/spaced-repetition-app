@@ -14,7 +14,7 @@ type Storage struct {
 	Decks interface {
 		Create(context.Context, *Deck) error
 		GetByDeckID(context.Context, int64) (*Deck, error)
-		ListByUserID(context.Context, int64) ([]*Deck, error)
+		ListAll(context.Context, int64, string) ([]*Deck, error)
 		DeleteByDeckID(context.Context, int64) error
 		Update(context.Context, *Deck) error
 	}

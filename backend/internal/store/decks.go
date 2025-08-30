@@ -64,15 +64,16 @@ func (s *DecksStore) GetByDeckID(ctx context.Context, deckID int64) (*Deck, erro
 	return &deck, nil
 }
 
-func (s *DecksStore) ListByUserID(ctx context.Context, userID int64) ([]*Deck, error) {
+func (s *DecksStore) ListAll(ctx context.Context, userID int64, deckName string) ([]*Deck, error) {
 	query := `
 	SELECT * FROM decks 
-	WHERE user_id = $1`
+	WHERE user_id = $1
+	AND ('' = $2 OR to_tsvector('simple', name) @@ plainto_tsquery('simple', $2))`
 
 	ctx, cancel := 	context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query, userID)
+	rows, err := s.db.QueryContext(ctx, query, userID, deckName)
 	if err != nil {
 		return nil, err
 	}
