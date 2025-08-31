@@ -53,15 +53,16 @@ func (cardStore *CardsStore) Create(ctx context.Context, card *Card) error {
 	return nil
 }
 
-func (s *CardsStore) ListByDeck(ctx context.Context, deckID int64) ([]*Card, error) {
+func (s *CardsStore) ListByDeck(ctx context.Context, deckID int64, front string) ([]*Card, error) {
 	query := `
 	SELECT id, deck_id, front, back, due, last_review, created_at FROM cards
-	WHERE deck_id = $1`
+	WHERE deck_id = $1
+	AND ('' = $2 OR to_tsvector('english', front) @@ plainto_tsquery('english', $2))`
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query, deckID)
+	rows, err := s.db.QueryContext(ctx, query, deckID, front)
 	if err != nil {
 		return nil, err
 	}

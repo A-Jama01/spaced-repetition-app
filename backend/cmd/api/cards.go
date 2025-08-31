@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"strconv"
+
 	"github.com/A-Jama01/spaced-repetition-app/internal/scheduler"
 	"github.com/A-Jama01/spaced-repetition-app/internal/store"
 	"github.com/go-chi/chi/v5"
@@ -14,6 +15,13 @@ type CardInput struct {
 }
 
 func (app *app) listCardsHander(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Front string
+	}
+
+	queryString := r.URL.Query()
+	input.Front = app.readString(queryString, "front", "")
+
 	deckIDParam := chi.URLParam(r, "deck_id")
 	deckID, err := strconv.ParseInt(deckIDParam, 10, 64)
 	if err != nil {
@@ -22,7 +30,7 @@ func (app *app) listCardsHander(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	cards, err := app.store.Cards.ListByDeck(ctx, deckID)
+	cards, err := app.store.Cards.ListByDeck(ctx, deckID, input.Front)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

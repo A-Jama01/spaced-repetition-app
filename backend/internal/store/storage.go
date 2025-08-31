@@ -20,7 +20,7 @@ type Storage struct {
 	}
 	Cards interface {
 		Create(context.Context, *Card) error
-		ListByDeck(context.Context, int64) ([]*Card, error)
+		ListByDeck(context.Context, int64, string) ([]*Card, error)
 		ListDueCards(context.Context, int64) ([]*Card, error)
 		Delete(ctx context.Context, cardID, deckID int64) error
 		Get(ctx context.Context, cardID, deckID int64) (*Card, error)
