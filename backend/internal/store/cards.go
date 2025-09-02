@@ -1,6 +1,7 @@
 package store
 
 import (
+	"fmt"
 	"context"
 	"database/sql"
 	"time"
@@ -53,25 +54,29 @@ func (cardStore *CardsStore) Create(ctx context.Context, card *Card) error {
 	return nil
 }
 
-func (s *CardsStore) ListByDeck(ctx context.Context, deckID int64, front string) ([]*Card, error) {
-	query := `
-	SELECT id, deck_id, front, back, due, last_review, created_at FROM cards
+func (s *CardsStore) ListByDeck(ctx context.Context, deckID int64, f Filters) ([]*Card, Metadata, error) {
+	query := fmt.Sprintf(`
+	SELECT COUNT(*) OVER(), id, deck_id, front, back, due, last_review, created_at FROM cards
 	WHERE deck_id = $1
-	AND ('' = $2 OR to_tsvector('english', front) @@ plainto_tsquery('english', $2))`
+	AND ('' = $2 OR to_tsvector('english', front) @@ plainto_tsquery('english', $2))
+	ORDER BY %s %s, id ASC
+	LIMIT $3 OFFSET $4`, f.sortColumn(), f.sortDirection())
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query, deckID, front)
+	rows, err := s.db.QueryContext(ctx, query, deckID, f.Front, f.PageSize, f.offset())
 	if err != nil {
-		return nil, err
+		return nil, Metadata{},err
 	}
 	defer rows.Close()
 
+	var totalRecords int64
 	var cards []*Card
 	for rows.Next() {
 		var card Card
 		err := rows.Scan(
+			&totalRecords,
 			&card.ID, 
 			&card.DeckID, 
 			&card.Front, 
@@ -81,17 +86,19 @@ func (s *CardsStore) ListByDeck(ctx context.Context, deckID int64, front string)
 			&card.CreatedAt,
 		)
 		if err != nil {
-			return nil, err
+			return nil, Metadata{}, err
 		}
 
 		cards = append(cards, &card)
 	}
 
 	if err = rows.Err(); err != nil {
-		return nil, err
+		return nil, Metadata{}, err
 	}
 
-	return cards, nil
+	metadata := calculateMetadata(totalRecords, f.Page, f.PageSize)
+
+	return cards, metadata, nil
 }
 
 func (s *CardsStore) ListDueCards(ctx context.Context, deckID int64) ([]*Card, error) {
