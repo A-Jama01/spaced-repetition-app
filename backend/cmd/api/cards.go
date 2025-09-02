@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"strconv"
+
 	"github.com/A-Jama01/spaced-repetition-app/internal/scheduler"
 	"github.com/A-Jama01/spaced-repetition-app/internal/store"
 	"github.com/go-chi/chi/v5"
@@ -14,6 +15,20 @@ type CardInput struct {
 }
 
 func (app *app) listCardsHander(w http.ResponseWriter, r *http.Request) {
+	var filters store.Filters
+
+	queryString := r.URL.Query()
+	filters.Front = app.readString(queryString, "front", "")
+	filters.Sort = app.readString(queryString, "sort", "id")
+	filters.Page = app.readInt(queryString, "page", 1)
+	filters.PageSize = app.readInt(queryString, "page_size", 20)
+
+	err := app.validate.Struct(filters)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
 	deckIDParam := chi.URLParam(r, "deck_id")
 	deckID, err := strconv.ParseInt(deckIDParam, 10, 64)
 	if err != nil {
@@ -22,13 +37,13 @@ func (app *app) listCardsHander(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	cards, err := app.store.Cards.ListByDeck(ctx, deckID)
+	cards, metadata, err := app.store.Cards.ListByDeck(ctx, deckID, filters)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 	
-	err = app.writeJSON(w, http.StatusOK, envelope{"cards": cards}, nil)
+	err = app.writeJSON(w, http.StatusOK, envelope{"metadata": metadata, "cards": cards}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return

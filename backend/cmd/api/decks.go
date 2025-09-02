@@ -13,6 +13,19 @@ type DeckInput struct {
 }
 
 func (app *app) listDecksHandler(w http.ResponseWriter, r *http.Request) {
+	var input struct {
+		Name string `validate:"max=70"`
+	}
+
+	queryString := r.URL.Query()
+	input.Name = app.readString(queryString, "name", "")
+
+	err := app.validate.Struct(input)
+	if err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
 	ctx := r.Context()
 	
 	userID, err := app.getUserIDFromContext(ctx)	
@@ -20,7 +33,7 @@ func (app *app) listDecksHandler(w http.ResponseWriter, r *http.Request) {
 		app.serverErrorResponse(w, r, err)
 	}
 
-	decks, err := app.store.Decks.ListByUserID(ctx, userID)
+	decks, err := app.store.Decks.ListAll(ctx, userID, input.Name)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
