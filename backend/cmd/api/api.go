@@ -44,7 +44,7 @@ func (app *app) routes() http.Handler {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Logger)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{"http://localhost:8080", "http://localhost:3000"},
+		AllowedOrigins: []string{"http://localhost:5173", "http://localhost:3000"},
 		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
 		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders: []string{"Link"},
