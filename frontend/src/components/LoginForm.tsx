@@ -24,6 +24,7 @@ export default function LoginForm() {
     try {
       const response = await fetch(url, {
         method: "POST",
+        credentials: "include",
         body: JSON.stringify({ username: username, password: password }),
       });
       if (!response.ok) {

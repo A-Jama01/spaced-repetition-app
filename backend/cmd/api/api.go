@@ -15,49 +15,48 @@ import (
 )
 
 type app struct {
-	config config
-	store store.Storage
-	logger *log.Logger
+	config   config
+	store    store.Storage
+	logger   *log.Logger
 	validate *validator.Validate
 	jwtAuth  *jwtauth.JWTAuth
 }
 
 type config struct {
 	addr string
-	db dbConfig
+	db   dbConfig
 }
 
 type dbConfig struct {
-	dsn string
+	dsn          string
 	maxOpenConns int
 	maxIdleConns int
-	maxIdleTime string
+	maxIdleTime  string
 }
-
 
 func (app *app) routes() http.Handler {
 	r := chi.NewRouter()
-	
+
 	r.NotFound(http.HandlerFunc(app.notFoundResponse))
 	r.MethodNotAllowed(http.HandlerFunc(app.methodNotAllowed))
 
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Logger)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins: []string{"http://localhost:5173", "http://localhost:3000"},
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
-		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders: []string{"Link"},
+		AllowedOrigins:   []string{"http://localhost:5173", "http://localhost:3000"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
 		AllowCredentials: true,
-		MaxAge: 300,
+		MaxAge:           300,
 	}))
 
 	r.Route("/v1", func(r chi.Router) {
 		//Public routes
 		r.Group(func(r chi.Router) {
-			r.Route("/auth", func(r chi.Router){
-				r.Post("/register", app.registerHandler)	
-				r.Post("/login", app.loginHandler)	
+			r.Route("/auth", func(r chi.Router) {
+				r.Post("/register", app.registerHandler)
+				r.Post("/login", app.loginHandler)
 			})
 		})
 
@@ -81,7 +80,7 @@ func (app *app) routes() http.Handler {
 							r.Delete("/", app.deleteCardHandler)
 							r.Patch("/", app.updateCardHandler)
 							r.Patch("/review", app.reviewCardHandler)
-						})	
+						})
 					})
 				})
 			})
@@ -89,6 +88,8 @@ func (app *app) routes() http.Handler {
 			r.Route("/stats", func(r chi.Router) {
 				r.Get("/", app.listStatsHandler)
 			})
+
+			r.Get("/auth/me", app.meHandler)
 		})
 	})
 
@@ -97,11 +98,11 @@ func (app *app) routes() http.Handler {
 
 func (app *app) run(mux http.Handler) error {
 	server := &http.Server{
-		Addr: app.config.addr,
-		Handler: mux,
-		ReadTimeout: time.Second * 10,
+		Addr:         app.config.addr,
+		Handler:      mux,
+		ReadTimeout:  time.Second * 10,
 		WriteTimeout: time.Second * 30,
-		IdleTimeout: time.Minute,
+		IdleTimeout:  time.Minute,
 	}
 
 	log.Printf("Server is running on port %s", app.config.addr)

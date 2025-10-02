@@ -1,11 +1,10 @@
 package main
 
 import (
+	"github.com/A-Jama01/spaced-repetition-app/internal/store"
 	"net/http"
 	"time"
-	"github.com/A-Jama01/spaced-repetition-app/internal/store"
 )
-
 
 func (app *app) registerHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -42,11 +41,12 @@ func (app *app) registerHandler(w http.ResponseWriter, r *http.Request) {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
-	
-	claims := map[string]any {
-		"user_id": user.ID,
+
+	expiration := time.Now().Add(3 * time.Hour).Unix()
+	claims := map[string]any{
+		"user_id":  user.ID,
 		"username": user.Username,
-		"exp": time.Now().Add(3 * 24 * time.Hour).Unix(),
+		"exp":      expiration,
 	}
 	_, tokenString, err := app.jwtAuth.Encode(claims)
 	if err != nil {
@@ -54,7 +54,19 @@ func (app *app) registerHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusCreated, envelope{"auth_token": tokenString}, nil)	
+	cookie := http.Cookie{
+		Name:     "auth_token",
+		Value:    tokenString,
+		Path:     "/",
+		MaxAge:   int(expiration),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	http.SetCookie(w, &cookie)
+
+	response := "Successful registration."
+	err = app.writeJSON(w, http.StatusCreated, envelope{"auth": response}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 	}
@@ -92,10 +104,11 @@ func (app *app) loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claims := map[string]any {
-		"user_id": user.ID,
+	expiration := time.Now().Add(3 * time.Hour).Unix()
+	claims := map[string]any{
+		"user_id":  user.ID,
 		"username": user.Username,
-		"exp": time.Now().Add(3 * 24 * time.Hour).Unix(),
+		"exp":      expiration,
 	}
 	_, tokenString, err := app.jwtAuth.Encode(claims)
 	if err != nil {
@@ -103,8 +116,35 @@ func (app *app) loginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.writeJSON(w, http.StatusOK, envelope{"auth_token": tokenString}, nil)	
+	cookie := http.Cookie{
+		Name:     "auth_token",
+		Value:    tokenString,
+		Path:     "/",
+		MaxAge:   int(expiration),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+	}
+	http.SetCookie(w, &cookie)
+
+	response := "Successful login."
+	err = app.writeJSON(w, http.StatusOK, envelope{"auth": response}, nil)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *app) meHandler(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	user_id, err := app.getUserIDFromContext(ctx)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envelope{"user": user_id}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
 	}
 }
