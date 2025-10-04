@@ -55,7 +55,7 @@ func (app *app) registerHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cookie := http.Cookie{
-		Name:     "auth_token",
+		Name:     "jwt",
 		Value:    tokenString,
 		Path:     "/",
 		MaxAge:   int(expiration),
@@ -117,7 +117,7 @@ func (app *app) loginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cookie := http.Cookie{
-		Name:     "auth_token",
+		Name:     "jwt",
 		Value:    tokenString,
 		Path:     "/",
 		MaxAge:   int(expiration),

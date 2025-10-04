@@ -13,18 +13,18 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { useState } from "react";
 
-interface LoginProps {
-  onLogin: () => Promise<void>;
+interface RegisterProps {
+  onRegister: () => Promise<void>;
 }
 
-export default function LoginForm({ onLogin }: LoginProps) {
+export default function RegisterForm({ onRegister }: RegisterProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  async function login(e: React.FormEvent) {
+  async function register(e: React.FormEvent) {
     e.preventDefault();
 
-    const url = import.meta.env.VITE_API_ADDR + "/v1/auth/login";
+    const url = import.meta.env.VITE_API_ADDR + "/v1/auth/register";
     try {
       const response = await fetch(url, {
         method: "POST",
@@ -38,7 +38,7 @@ export default function LoginForm({ onLogin }: LoginProps) {
       const result = await response.json();
       console.log(result);
 
-      onLogin();
+      onRegister();
     } catch (err) {
       if (err instanceof Error) {
         console.log(err.message);
@@ -52,20 +52,20 @@ export default function LoginForm({ onLogin }: LoginProps) {
     <Card className="w-full max-w-sm">
       <CardHeader>
         <div className="grid grid-cols-1 gap-4">
-          <CardTitle>Login to your account</CardTitle>
+          <CardTitle>Register an account</CardTitle>
           <CardDescription>
-            Enter username and password to login to your account.
+            Enter a username and password to register an account.
           </CardDescription>
         </div>
         <div>
           <CardAction>
-            <Link to="/register">
-              <Button variant="link">Sign Up</Button>
+            <Link to="/login">
+              <Button variant="link">Login</Button>
             </Link>
           </CardAction>
         </div>
       </CardHeader>
-      <form onSubmit={login}>
+      <form onSubmit={register}>
         <CardContent>
           <div className="flex flex-col gap-6">
             <div className="grid gap-2">
@@ -102,7 +102,7 @@ export default function LoginForm({ onLogin }: LoginProps) {
         </CardContent>
         <CardFooter>
           <Button type="submit" className="w-full">
-            Login
+            Register
           </Button>
         </CardFooter>
       </form>
