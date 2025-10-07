@@ -12,6 +12,8 @@ import {
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { useState } from "react";
+import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
+import { AlertCircleIcon } from "lucide-react";
 
 interface RegisterProps {
   onRegister: () => Promise<void>;
@@ -20,6 +22,7 @@ interface RegisterProps {
 export default function RegisterForm({ onRegister }: RegisterProps) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showAlert, setShowAlert] = useState<boolean>(false);
 
   async function register(e: React.FormEvent) {
     e.preventDefault();
@@ -32,12 +35,12 @@ export default function RegisterForm({ onRegister }: RegisterProps) {
         body: JSON.stringify({ username: username, password: password }),
       });
       if (!response.ok) {
+        setShowAlert(true);
         throw new Error(`Response Status: ${response.status}`);
       }
 
       const result = await response.json();
       console.log(result);
-
       onRegister();
     } catch (err) {
       if (err instanceof Error) {
@@ -49,63 +52,80 @@ export default function RegisterForm({ onRegister }: RegisterProps) {
   }
 
   return (
-    <Card className="w-full max-w-sm">
-      <CardHeader>
-        <div className="grid grid-cols-1 gap-4">
-          <CardTitle>Register an account</CardTitle>
-          <CardDescription>
-            Enter a username and password to register an account.
-          </CardDescription>
-        </div>
-        <div>
-          <CardAction>
-            <Link to="/login">
-              <Button variant="link">Login</Button>
-            </Link>
-          </CardAction>
-        </div>
-      </CardHeader>
-      <form onSubmit={register}>
-        <CardContent>
-          <div className="flex flex-col gap-6">
-            <div className="grid gap-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                name="username"
-                type="text"
-                placeholder="Username"
-                required
-                minLength={8}
-                maxLength={40}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                }}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="text"
-                placeholder="Password"
-                required
-                minLength={8}
-                maxLength={50}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                }}
-              />
-            </div>
+    <div>
+      <Card className="w-full max-w-sm">
+        <CardHeader>
+          <div className="grid grid-cols-1 gap-4">
+            <CardTitle>Register an account</CardTitle>
+            <CardDescription>
+              Enter a username and password to register an account.
+            </CardDescription>
           </div>
-        </CardContent>
-        <CardFooter>
-          <Button type="submit" className="w-full">
-            Register
-          </Button>
-        </CardFooter>
-      </form>
-    </Card>
+          <div>
+            <CardAction>
+              <Link to="/login">
+                <Button variant="link">Login</Button>
+              </Link>
+            </CardAction>
+          </div>
+        </CardHeader>
+        <form onSubmit={register}>
+          <CardContent>
+            <div className="flex flex-col gap-6">
+              <div className="grid gap-2">
+                <Label htmlFor="username">Username</Label>
+                <Input
+                  id="username"
+                  name="username"
+                  type="text"
+                  placeholder="Username"
+                  required
+                  minLength={8}
+                  maxLength={40}
+                  onChange={(e) => {
+                    setUsername(e.target.value);
+                  }}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="text"
+                  placeholder="Password"
+                  required
+                  minLength={8}
+                  maxLength={50}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                  }}
+                />
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <Button type="submit" className="w-full">
+              Register
+            </Button>
+          </CardFooter>
+        </form>
+      </Card>
+      {showAlert && (
+        <Alert className="mt-4 w-full max-w-sm" variant="destructive">
+          <AlertCircleIcon />
+          <AlertTitle>Unable to register account</AlertTitle>
+          <AlertDescription>
+            <ul className="list-inside list-disc text-sm">
+              <li>Username and Passwords must be atleast 8 characters</li>
+              <li>
+                The username entered may already be taken try using an alternate
+                username
+              </li>
+            </ul>
+          </AlertDescription>
+        </Alert>
+      )}
+    </div>
   );
 }
