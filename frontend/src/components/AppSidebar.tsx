@@ -44,6 +44,12 @@ import { Button } from "./ui/button";
 import { Label } from "./ui/label";
 import { Search, ChartArea, Book, Plus } from "lucide-react";
 import { useEffect, useState, type ChangeEvent } from "react";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuTrigger,
+  ContextMenuItem,
+} from "./ui/context-menu";
 
 export interface Deck {
   id: number;
@@ -51,38 +57,17 @@ export interface Deck {
   name: string;
 }
 
-export function AppSidebar() {
-  const [decks, setDecks] = useState<Deck[]>([]);
+export interface SidebarProps {
+  decks: Deck[];
+  setDecks: React.Dispatch<React.SetStateAction<Deck[]>>;
+  fetchDecks(name: String): Promise<void | Error>;
+}
+
+export function AppSidebar({ decks, setDecks, fetchDecks }: SidebarProps) {
   const [search, setSearch] = useState<string>("");
   const [deckForm, setDeckForm] = useState<boolean>(false);
   const [deckFormInput, setDeckFormInput] = useState<string>("");
   const [renameInput, setRenameInput] = useState<string>("");
-
-  async function fetchDecks(name: string): Promise<void | Error> {
-    try {
-      const url = new URL(import.meta.env.VITE_API_ADDR + "/v1/decks");
-      const params = { name: name };
-      url.search = new URLSearchParams(params).toString();
-
-      const response = await fetch(url, {
-        method: "GET",
-        credentials: "include",
-      });
-      if (!response.ok) {
-        const responseText = await response.text();
-        throw new Error(responseText);
-      }
-
-      const data = await response.json();
-      setDecks(data.decks);
-      console.log(data.decks);
-    } catch (err) {
-      if (err instanceof Error) {
-        return err;
-      }
-      return new Error("Error fetching decks");
-    }
-  }
 
   useEffect(() => {
     fetchDecks(search);
@@ -129,7 +114,8 @@ export function AppSidebar() {
       }
 
       const data = await response.json();
-      setDecks((decks) => decks.filter((deck) => deck.id != id));
+      const filteredDecks = decks.filter((deck) => deck.id !== id);
+      setDecks(filteredDecks);
       console.log(data.deck);
     } catch (err) {
       if (err instanceof Error) {
@@ -200,23 +186,21 @@ export function AppSidebar() {
             <SidebarMenu>
               {decks &&
                 decks.map((deck) => (
-                  <DropdownMenu key={deck.id}>
-                    <DropdownMenuTrigger asChild>
-                      <SidebarMenuItem>
-                        <SidebarMenuButton className="cursor-pointer">
-                          <Book />
-                          <span>{deck.name}</span>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="-mt-1 ml-30">
+                  <ContextMenu key={deck.id}>
+                    <ContextMenuTrigger asChild>
+                      <SidebarMenuButton className="cursor-pointer">
+                        <Book />
+                        <span>{deck.name}</span>
+                      </SidebarMenuButton>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent>
                       <Dialog>
                         <DialogTrigger asChild>
-                          <DropdownMenuItem
+                          <ContextMenuItem
                             onSelect={(e: Event) => e.preventDefault()}
                           >
                             Rename
-                          </DropdownMenuItem>
+                          </ContextMenuItem>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[425px]">
                           <DialogHeader>
@@ -251,7 +235,7 @@ export function AppSidebar() {
                           </DialogFooter>
                         </DialogContent>
                       </Dialog>
-                      <DropdownMenuItem
+                      <ContextMenuItem
                         onSelect={(e: Event) => e.preventDefault()}
                       >
                         <AlertDialog>
@@ -279,9 +263,9 @@ export function AppSidebar() {
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
                 ))}
               {deckForm && (
                 <form onSubmit={createDeck}>
