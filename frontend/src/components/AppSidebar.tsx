@@ -4,7 +4,6 @@ import {
   SidebarContent,
   SidebarGroup,
   SidebarGroupLabel,
-  SidebarFooter,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuItem,
@@ -12,13 +11,6 @@ import {
   SidebarInput,
 } from "@/components/ui/sidebar";
 import { Input } from "./ui/input";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
 import {
   Dialog,
   DialogTrigger,
@@ -50,20 +42,16 @@ import {
   ContextMenuTrigger,
   ContextMenuItem,
 } from "./ui/context-menu";
-
-export interface Deck {
-  id: number;
-  user_id: number;
-  name: string;
-}
+import { type Deck } from "@/pages/Home";
 
 export interface SidebarProps {
   decks: Deck[];
   setDecks: React.Dispatch<React.SetStateAction<Deck[]>>;
-  fetchDecks(name: String): Promise<void | Error>;
+  selectedDeck: Deck | null;
+  setSelectedDeck: React.Dispatch<React.SetStateAction<Deck | null>>;
 }
 
-export function AppSidebar({ decks, setDecks, fetchDecks }: SidebarProps) {
+export function AppSidebar({ decks, setDecks, setSelectedDeck }: SidebarProps) {
   const [search, setSearch] = useState<string>("");
   const [deckForm, setDeckForm] = useState<boolean>(false);
   const [deckFormInput, setDeckFormInput] = useState<string>("");
@@ -72,6 +60,32 @@ export function AppSidebar({ decks, setDecks, fetchDecks }: SidebarProps) {
   useEffect(() => {
     fetchDecks(search);
   }, [search]);
+
+  async function fetchDecks(name: string): Promise<void | Error> {
+    try {
+      const url = new URL(import.meta.env.VITE_API_ADDR + "/v1/decks");
+      const params = { name: name };
+      url.search = new URLSearchParams(params).toString();
+
+      const response = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+      });
+      if (!response.ok) {
+        const responseText = await response.text();
+        throw new Error(responseText);
+      }
+
+      const data = await response.json();
+      setDecks(data.decks);
+      console.log(data.decks);
+    } catch (err) {
+      if (err instanceof Error) {
+        return err;
+      }
+      return new Error("Error fetching decks");
+    }
+  }
 
   async function createDeck(e: React.FormEvent): Promise<void | Error> {
     e.preventDefault();
@@ -139,7 +153,6 @@ export function AppSidebar({ decks, setDecks, fetchDecks }: SidebarProps) {
         throw new Error(responseText);
       }
 
-      const data = await response.json();
       const nextDecks = [...decks];
       const renamedDeck = nextDecks.find((d) => d.id === id);
       if (!renamedDeck) {
@@ -188,7 +201,10 @@ export function AppSidebar({ decks, setDecks, fetchDecks }: SidebarProps) {
                 decks.map((deck) => (
                   <ContextMenu key={deck.id}>
                     <ContextMenuTrigger asChild>
-                      <SidebarMenuButton className="cursor-pointer">
+                      <SidebarMenuButton
+                        onClick={() => setSelectedDeck(deck)}
+                        className="cursor-pointer"
+                      >
                         <Book />
                         <span>{deck.name}</span>
                       </SidebarMenuButton>
