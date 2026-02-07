@@ -43,7 +43,7 @@ func NewStorage(db *sql.DB) Storage {
 	return Storage{
 		Decks: &DecksStore{db},
 		Cards: &CardsStore{db},
-		Logs: &LogsStore{db},
+		Logs:  &LogsStore{db},
 		Users: &UsersStore{db},
 	}
 }

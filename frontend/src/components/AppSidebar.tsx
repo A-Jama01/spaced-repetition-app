@@ -34,7 +34,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "./ui/button";
 import { Label } from "./ui/label";
-import { Search, ChartArea, Book, Plus } from "lucide-react";
+import { Search, ChartArea, Book, Plus, Minus } from "lucide-react";
 import { useEffect, useState, type ChangeEvent } from "react";
 import {
   ContextMenu,
@@ -42,16 +42,21 @@ import {
   ContextMenuTrigger,
   ContextMenuItem,
 } from "./ui/context-menu";
-import { type Deck } from "@/pages/Home";
+import { type Deck, SidebarSelection } from "@/pages/Home";
 
 export interface SidebarProps {
   decks: Deck[];
   setDecks: React.Dispatch<React.SetStateAction<Deck[]>>;
-  selectedDeck: Deck | null;
   setSelectedDeck: React.Dispatch<React.SetStateAction<Deck | null>>;
+  setSidebarSelection: React.Dispatch<React.SetStateAction<SidebarSelection>>;
 }
 
-export function AppSidebar({ decks, setDecks, setSelectedDeck }: SidebarProps) {
+export function AppSidebar({
+  decks,
+  setDecks,
+  setSelectedDeck,
+  setSidebarSelection,
+}: SidebarProps) {
   const [search, setSearch] = useState<string>("");
   const [deckForm, setDeckForm] = useState<boolean>(false);
   const [deckFormInput, setDeckFormInput] = useState<string>("");
@@ -114,7 +119,7 @@ export function AppSidebar({ decks, setDecks, setSelectedDeck }: SidebarProps) {
     }
   }
 
-  async function deleteDeck(id: Number): Promise<void | Error> {
+  async function deleteDeck(id: number): Promise<void | Error> {
     try {
       const url = new URL(import.meta.env.VITE_API_ADDR + "/v1/decks/" + id);
 
@@ -139,7 +144,7 @@ export function AppSidebar({ decks, setDecks, setSelectedDeck }: SidebarProps) {
     }
   }
 
-  async function renameDeck(id: Number): Promise<void | Error> {
+  async function renameDeck(id: number): Promise<void | Error> {
     try {
       const url = new URL(import.meta.env.VITE_API_ADDR + "/v1/decks/" + id);
 
@@ -185,7 +190,12 @@ export function AppSidebar({ decks, setDecks, setSelectedDeck }: SidebarProps) {
             <Search className="pointer-events-none absolute top-1/2 left-2 size-4 -translate-y-1/2 opacity-50 select-none" />
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton className="cursor-pointer">
+            <SidebarMenuButton
+              className="cursor-pointer"
+              onClick={() => {
+                setSidebarSelection(SidebarSelection.Stats);
+              }}
+            >
               <ChartArea />
               <span>Stats</span>
             </SidebarMenuButton>
@@ -202,7 +212,10 @@ export function AppSidebar({ decks, setDecks, setSelectedDeck }: SidebarProps) {
                   <ContextMenu key={deck.id}>
                     <ContextMenuTrigger asChild>
                       <SidebarMenuButton
-                        onClick={() => setSelectedDeck(deck)}
+                        onClick={() => {
+                          setSidebarSelection(SidebarSelection.Deck);
+                          setSelectedDeck(deck);
+                        }}
                         className="cursor-pointer"
                       >
                         <Book />
@@ -306,8 +319,17 @@ export function AppSidebar({ decks, setDecks, setSelectedDeck }: SidebarProps) {
                     setDeckForm(!deckForm);
                   }}
                 >
-                  <Plus />
-                  <span className="text-zinc-500">New Deck</span>
+                  {deckForm ? (
+                    <>
+                      <Minus />
+                      <span className="text-zinc-500">Close</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus />
+                      <span className="text-zinc-500">New Deck</span>
+                    </>
+                  )}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

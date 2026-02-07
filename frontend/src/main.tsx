@@ -5,6 +5,7 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home";
+import { Toaster } from "./components/ui/sonner";
 
 const root = createRoot(document.getElementById("root")!);
 root.render(
@@ -16,6 +17,7 @@ root.render(
         <Route path="/register" element={<Register />} />
         <Route path="/" element={<Home />} />
       </Routes>
+      <Toaster />
     </BrowserRouter>
   </StrictMode>,
 );
