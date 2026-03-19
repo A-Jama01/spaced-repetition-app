@@ -20,8 +20,8 @@ interface CardFormProps {
   card?: Flashcard;
   children: React.ReactNode;
   cardOperation(
-    front: string,
-    back: string,
+    front?: string,
+    back?: string,
     cardID?: number,
   ): Promise<null | Error>;
 }
@@ -41,10 +41,12 @@ export default function CardForm({
 
   async function handleSubmit() {
     let err;
-    if (operationName === "Update") {
-      err = await cardOperation(frontInput, backInput, card.id);
-    } else if (operationName === "Delete") {
+    if (operationName === "Create") {
       err = await cardOperation(frontInput, backInput);
+    } else if (operationName === "Update" && card) {
+      err = await cardOperation(frontInput, backInput, card.id);
+    } else if (operationName === "Delete" && card) {
+      err = await cardOperation(undefined, undefined, card.id);
     }
     if (err === null) {
       setFrontInput("");

@@ -41,7 +41,11 @@ interface CardViewProps {
   setFront: React.Dispatch<React.SetStateAction<string>>;
   createCard(front: string, back: string): Promise<null | Error>;
   deleteCard(cardID: number): Promise<null | Error>;
-  updateCard(front: string, back: string): Promise<null | Error>;
+  updateCard(
+    front: string,
+    back: string,
+    cardID: number,
+  ): Promise<null | Error>;
 }
 
 export default function CardView({

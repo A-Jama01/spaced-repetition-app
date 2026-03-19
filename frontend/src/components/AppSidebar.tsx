@@ -49,6 +49,7 @@ export interface SidebarProps {
   setDecks: React.Dispatch<React.SetStateAction<Deck[]>>;
   setSelectedDeck: React.Dispatch<React.SetStateAction<Deck | null>>;
   setSidebarSelection: React.Dispatch<React.SetStateAction<SidebarSelection>>;
+  setShowReview: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export function AppSidebar({
@@ -56,6 +57,7 @@ export function AppSidebar({
   setDecks,
   setSelectedDeck,
   setSidebarSelection,
+  setShowReview,
 }: SidebarProps) {
   const [search, setSearch] = useState<string>("");
   const [deckForm, setDeckForm] = useState<boolean>(false);
@@ -215,6 +217,7 @@ export function AppSidebar({
                         onClick={() => {
                           setSidebarSelection(SidebarSelection.Deck);
                           setSelectedDeck(deck);
+                          setShowReview(false);
                         }}
                         className="cursor-pointer"
                       >

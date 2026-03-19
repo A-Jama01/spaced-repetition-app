@@ -1,7 +1,7 @@
 import { AppSidebar } from "@/components/AppSidebar";
 import CardView from "@/components/CardView";
+import ReviewView from "@/components/ReviewView";
 import { Button } from "@/components/ui/button";
-import { Card, CardDescription } from "@/components/ui/card";
 import {
   SidebarInset,
   SidebarProvider,
@@ -37,7 +37,9 @@ export default function Home() {
   );
   const [decks, setDecks] = useState<Deck[]>([]);
   const [selectedDeck, setSelectedDeck] = useState<Deck | null>(null);
+  const [showReview, setShowReview] = useState<boolean>(false);
   const [cards, setCards] = useState<Flashcard[]>([]);
+  const [dueCards, setDueCards] = useState<Flashcard[]>([]);
   const [front, setFront] = useState<string>("");
   const [sort, setSort] = useState<string>("id");
   const [page, setPage] = useState<number>(1);
@@ -238,6 +240,77 @@ export default function Home() {
     }
   }
 
+  async function getDueCards(): Promise<Error | null> {
+    if (selectedDeck == null) {
+      return null;
+    }
+
+    try {
+      const url = new URL(
+        import.meta.env.VITE_API_ADDR +
+          "/v1/decks/" +
+          selectedDeck.id +
+          "/cards" +
+          "/due",
+      );
+
+      const response = await fetch(url, {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const responseText = await response.text();
+        throw new Error(responseText);
+      }
+
+      const data = await response.json();
+      setDueCards(data.cards);
+      console.log(data.cards);
+
+      return null;
+    } catch (err) {
+      if (err instanceof Error) {
+        return err;
+      }
+      return new Error("Error fetching due cards");
+    }
+  }
+
+  async function reviewCard(
+    grade: number,
+    cardID: number,
+  ): Promise<Error | null> {
+    if (selectedDeck == null) {
+      return null;
+    }
+    try {
+      const url = new URL(
+        `${import.meta.env.VITE_API_ADDR}/v1/decks/${selectedDeck.id}/cards/${cardID}/review`,
+      );
+
+      const response = await fetch(url, {
+        method: "PATCH",
+        body: JSON.stringify({ grade: grade }),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const responseText = await response.text();
+        throw new Error(responseText);
+      }
+
+      setDueCards(dueCards.slice(1));
+      toast.success("Card successfully reviewed");
+      return null;
+    } catch (err) {
+      if (err instanceof Error) {
+        return err;
+      }
+      return new Error("Error reviewing card");
+    }
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar
@@ -245,18 +318,26 @@ export default function Home() {
         setDecks={setDecks}
         setSelectedDeck={setSelectedDeck}
         setSidebarSelection={setCurrentSelection}
+        setShowReview={setShowReview}
       />
       <SidebarInset>
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-          <SidebarTrigger className="ml-1" />
+        <header className="flex flex-row justify-between h-16 shrink-0 items-center border-b px-2">
           <div>
+            <SidebarTrigger className="ml-1" />
             {currentSelection === SidebarSelection.Deck
               ? selectedDeck?.name
               : currentSelection}
           </div>
+          {currentSelection === SidebarSelection.Deck && (
+            <div>
+              <Button onClick={() => setShowReview(!showReview)}>
+                {showReview ? "Close Review" : "Review"}
+              </Button>
+            </div>
+          )}
         </header>
         <div className="flex flex-1 flex-col">
-          {currentSelection === SidebarSelection.Deck && (
+          {currentSelection === SidebarSelection.Deck && !showReview && (
             <CardView
               cards={cards}
               sort={sort}
@@ -266,6 +347,13 @@ export default function Home() {
               createCard={createCard}
               deleteCard={deleteCard}
               updateCard={updateCard}
+            />
+          )}
+          {currentSelection === SidebarSelection.Deck && showReview && (
+            <ReviewView
+              dueCards={dueCards}
+              getDueCards={getDueCards}
+              reviewCard={reviewCard}
             />
           )}
           {currentSelection === SidebarSelection.Stats && <div>stats</div>}

@@ -4,7 +4,11 @@ import FlashcardItem from "./FlashcardItem";
 interface FlashcardProps {
   cards: Flashcard[];
   deleteCard(cardID: number): Promise<null | Error>;
-  updateCard(front: string, back: string): Promise<null | Error>;
+  updateCard(
+    front: string,
+    back: string,
+    cardID: number,
+  ): Promise<null | Error>;
 }
 
 export default function Flashcards({

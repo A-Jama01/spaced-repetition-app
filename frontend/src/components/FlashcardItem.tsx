@@ -27,7 +27,11 @@ import CardForm from "./CardForm";
 interface FlashcardItemProps {
   card: Flashcard;
   deleteCard(cardID: number): Promise<null | Error>;
-  updateCard(front: string, back: string): Promise<null | Error>;
+  updateCard(
+    front: string,
+    back: string,
+    cardID: number,
+  ): Promise<null | Error>;
 }
 
 export default function FlashcardItem({
