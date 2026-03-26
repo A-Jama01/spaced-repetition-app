@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { fetchUser } from "@/utils/fetchUser";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import StatsView from "@/components/StatsView";
 
 export interface Deck {
   id: number;
@@ -356,7 +357,7 @@ export default function Home() {
               reviewCard={reviewCard}
             />
           )}
-          {currentSelection === SidebarSelection.Stats && <div>stats</div>}
+          {currentSelection === SidebarSelection.Stats && <StatsView />}
         </div>
       </SidebarInset>
     </SidebarProvider>
