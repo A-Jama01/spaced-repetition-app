@@ -7,10 +7,10 @@ import (
 )
 
 type Logs struct {
-	ID int64 `json:"id"`
-    CardID int64 `json:"card_id"`
-    Grade int64 `json:"grade"`
-    ReviewedAt time.Time `json:"reviewed_at"`
+	ID         int64     `json:"id"`
+	CardID     int64     `json:"card_id"`
+	Grade      int64     `json:"grade"`
+	ReviewedAt time.Time `json:"reviewed_at"`
 }
 
 type LogsStore struct {
@@ -18,14 +18,15 @@ type LogsStore struct {
 }
 
 type StatsQueryParams struct {
-	UserID int64
-	DeckName string
-	TimeZone string
+	UserID         int64
+	DeckName       string
+	TimeZone       string
+	ForecastLength int64
 }
 
 type ReviewCell struct {
 	ReviewDate time.Time `json:"review_date"`
-	Reviews int64 `json:"reviews"`
+	Reviews    int64     `json:"reviews"`
 }
 
 func (s *LogsStore) Create(ctx context.Context, logs *Logs) error {
@@ -61,11 +62,11 @@ func (s LogsStore) GetCount(ctx context.Context, p StatsQueryParams) (int64, err
 	WHERE u.id = $1 
 	AND ($2 = '' OR d.name = $2) 
 	AND DATE(l.reviewed_at AT TIME ZONE $3) = DATE(NOW() AT TIME ZONE $3)`
-	
+
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	
-	var count int64	
+
+	var count int64
 	err := s.db.QueryRowContext(ctx, query, p.UserID, p.DeckName, p.TimeZone).Scan(&count)
 	if err != nil {
 		return 0, err
@@ -111,7 +112,7 @@ func (s *LogsStore) GetHeatMap(ctx context.Context, p StatsQueryParams) ([]*Revi
 	AND ($3 = '' OR d.name = $3)
 	AND l.reviewed_at >= NOW() - INTERVAL '1 year'
 	GROUP BY date
-	ORDER BY date` 
+	ORDER BY date`
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
@@ -130,7 +131,7 @@ func (s *LogsStore) GetHeatMap(ctx context.Context, p StatsQueryParams) ([]*Revi
 		if err != nil {
 			return nil, err
 		}
-		
+
 		heatmap = append(heatmap, &cell)
 	}
 

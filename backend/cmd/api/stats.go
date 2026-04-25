@@ -2,11 +2,17 @@ package main
 
 import (
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/A-Jama01/spaced-repetition-app/internal/store"
 )
 
+const (
+	WEEK  = 6
+	MONTH = 29
+	YEAR  = 364
+)
 
 func (app *app) listStatsHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -19,6 +25,7 @@ func (app *app) listStatsHandler(w http.ResponseWriter, r *http.Request) {
 	queryString := r.URL.Query()
 	deckName := app.readString(queryString, "deck_name", "")
 	timeZone := app.readString(queryString, "tz", "UTC")
+	forecastLength := app.readInt(queryString, "forecast_length", WEEK)
 
 	_, err = time.LoadLocation(timeZone)
 	if err != nil {
@@ -26,17 +33,23 @@ func (app *app) listStatsHandler(w http.ResponseWriter, r *http.Request) {
 		app.logger.Printf("Failed time zone")
 	}
 
+	acceptableForecastLengths := []int64{WEEK, MONTH, YEAR}
+	if !slices.Contains(acceptableForecastLengths, forecastLength) {
+		forecastLength = WEEK
+	}
+
 	queryParams := store.StatsQueryParams{
-		UserID: userID,
-		DeckName: deckName,
-		TimeZone: timeZone,
+		UserID:         userID,
+		DeckName:       deckName,
+		TimeZone:       timeZone,
+		ForecastLength: forecastLength,
 	}
 
 	var response struct {
-		ReviewCount int64 `json:"review_count"`
-		Retention float64 `json:"retention"`
-		HeatMap []*store.ReviewCell `json:"heatmap"`
-		Forecasts []*store.DueForecast `json:"forecasts"`
+		ReviewCount int64                `json:"review_count"`
+		Retention   float64              `json:"retention"`
+		HeatMap     []*store.ReviewCell  `json:"heatmap"`
+		Forecasts   []*store.DueForecast `json:"forecasts"`
 	}
 
 	response.ReviewCount, err = app.store.Logs.GetCount(ctx, queryParams)
@@ -62,7 +75,6 @@ func (app *app) listStatsHandler(w http.ResponseWriter, r *http.Request) {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
-	
 
 	err = app.writeJSON(w, http.StatusOK, envelope{"stats": response}, nil)
 	if err != nil {

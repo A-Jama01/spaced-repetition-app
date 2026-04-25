@@ -1,23 +1,23 @@
 package store
 
 import (
-	"fmt"
 	"context"
 	"database/sql"
+	"fmt"
 	"time"
 )
 
 type Card struct {
-	ID int64 `json:"id"`
-	DeckID int64 `json:"deck_id"`
-	Front string `json:"front"`
-	Back string	 `json:"back"`
-	Retrievability float64  `json:"retrievability"`
-	Stability float64 `json:"stability"`
-	Difficulty float64 `json:"difficulty"`
-	Due *time.Time `json:"due"`
-	CreatedAt time.Time `json:"created_at"`
-	LastReview *time.Time `json:"last_review"` 
+	ID             int64      `json:"id"`
+	DeckID         int64      `json:"deck_id"`
+	Front          string     `json:"front"`
+	Back           string     `json:"back"`
+	Retrievability float64    `json:"retrievability"`
+	Stability      float64    `json:"stability"`
+	Difficulty     float64    `json:"difficulty"`
+	Due            *time.Time `json:"due"`
+	CreatedAt      time.Time  `json:"created_at"`
+	LastReview     *time.Time `json:"last_review"`
 }
 
 type CardsStore struct {
@@ -25,8 +25,8 @@ type CardsStore struct {
 }
 
 type DueForecast struct {
-	DueDate time.Time `json:"due_date"`
-	DueCount int64 `json:"due_count"`
+	DueDate  time.Time `json:"due_date"`
+	DueCount int64     `json:"due_count"`
 }
 
 func (cardStore *CardsStore) Create(ctx context.Context, card *Card) error {
@@ -34,9 +34,9 @@ func (cardStore *CardsStore) Create(ctx context.Context, card *Card) error {
 	INSERT INTO cards (deck_id, front, back) 
 	VALUES ($1, $2, $3) RETURNING id, created_at`
 
-	ctx, cancel := context.WithTimeout(ctx, 5 * time.Second)
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	
+
 	err := cardStore.db.QueryRowContext(
 		ctx,
 		query,
@@ -67,7 +67,7 @@ func (s *CardsStore) ListByDeck(ctx context.Context, deckID int64, f Filters) ([
 
 	rows, err := s.db.QueryContext(ctx, query, deckID, f.Front, f.PageSize, f.offset())
 	if err != nil {
-		return nil, Metadata{},err
+		return nil, Metadata{}, err
 	}
 	defer rows.Close()
 
@@ -77,11 +77,11 @@ func (s *CardsStore) ListByDeck(ctx context.Context, deckID int64, f Filters) ([
 		var card Card
 		err := rows.Scan(
 			&totalRecords,
-			&card.ID, 
-			&card.DeckID, 
-			&card.Front, 
-			&card.Back, 
-			&card.Due, 
+			&card.ID,
+			&card.DeckID,
+			&card.Front,
+			&card.Back,
+			&card.Due,
 			&card.LastReview,
 			&card.CreatedAt,
 		)
@@ -120,11 +120,11 @@ func (s *CardsStore) ListDueCards(ctx context.Context, deckID int64) ([]*Card, e
 	for rows.Next() {
 		var card Card
 		err := rows.Scan(
-			&card.ID, 
-			&card.DeckID, 
-			&card.Front, 
-			&card.Back, 
-			&card.Due, 
+			&card.ID,
+			&card.DeckID,
+			&card.Front,
+			&card.Back,
+			&card.Due,
 			&card.LastReview,
 			&card.CreatedAt,
 		)
@@ -212,10 +212,10 @@ func (s *CardsStore) Update(ctx context.Context, card *Card) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	results, err := s.db.ExecContext(ctx, 
-		query, 
-		card.Front, 
-		card.Back, 
+	results, err := s.db.ExecContext(ctx,
+		query,
+		card.Front,
+		card.Back,
 		card.Retrievability,
 		card.Stability,
 		card.Difficulty,
@@ -240,21 +240,35 @@ func (s *CardsStore) Update(ctx context.Context, card *Card) error {
 }
 
 func (s *CardsStore) GetDueForecast(ctx context.Context, p StatsQueryParams) ([]*DueForecast, error) {
+	// query := `
+	// SELECT DATE(c.due AT TIME ZONE $1) AS due_date, COUNT(*) AS count FROM cards c
+	// JOIN decks d ON c.deck_id = d.id
+	// JOIN users u ON d.user_id = u.id
+	// WHERE u.id = $2
+	// AND ($3 = '' OR d.name = $3)
+	// AND DATE(c.due AT TIME ZONE $1) < DATE(NOW() AT TIME ZONE $1) + interval '1 month'
+	// AND DATE(c.due AT TIME ZONE $1) >= DATE(NOW() AT TIME ZONE $1)
+	// GROUP BY due_date
+	// ORDER BY due_date`
+
 	query := `
-	SELECT DATE(c.due AT TIME ZONE $1) AS due_date, COUNT(*) AS count FROM cards c
-	JOIN decks d ON c.deck_id = d.id
-	JOIN users u ON d.user_id = u.id
-	WHERE u.id = $2
-	AND ($3 = '' OR d.name = $3)
-	AND DATE(c.due AT TIME ZONE $1) < DATE(NOW() AT TIME ZONE $1) + interval '1 month'
-	AND DATE(c.due AT TIME ZONE $1) >= DATE(NOW() AT TIME ZONE $1)
-	GROUP BY due_date
-	ORDER BY due_date`
+	SELECT days.date, COUNT(c.id) AS count
+	FROM generate_series((NOW() AT TIME ZONE $1)::date,
+	  (NOW() AT TIME ZONE $1)::date + ($2 || ' days')::interval,
+	  INTERVAL '1 day'
+	) days(date)
+	LEFT JOIN cards c ON (c.due AT TIME ZONE $1) >= days.date 
+	AND (c.due AT TIME ZONE $1) < days.date + INTERVAL '1 day'
+	LEFT JOIN decks deck ON c.deck_id = deck.id AND ($4 = '' OR deck.name = $4)
+	LEFT JOIN users u ON deck.user_id = u.id AND u.id = $3
+	GROUP BY days.date
+	ORDER BY days.date
+	`
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query, p.TimeZone, p.UserID, p.DeckName)
+	rows, err := s.db.QueryContext(ctx, query, p.TimeZone, p.ForecastLength, p.UserID, p.DeckName)
 	if err != nil {
 		return nil, err
 	}
