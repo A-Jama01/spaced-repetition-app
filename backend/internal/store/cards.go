@@ -252,15 +252,17 @@ func (s *CardsStore) GetDueForecast(ctx context.Context, p StatsQueryParams) ([]
 	// ORDER BY due_date`
 
 	query := `
-	SELECT days.date, COUNT(c.id) AS count
+	SELECT days.date, COUNT(CASE
+	WHEN ($4 = '' OR deck.name = $4) AND (deck.user_id = $3)
+	THEN c.id END) AS count
 	FROM generate_series((NOW() AT TIME ZONE $1)::date,
 	  (NOW() AT TIME ZONE $1)::date + ($2 || ' days')::interval,
 	  INTERVAL '1 day'
 	) days(date)
 	LEFT JOIN cards c ON (c.due AT TIME ZONE $1) >= days.date 
 	AND (c.due AT TIME ZONE $1) < days.date + INTERVAL '1 day'
-	LEFT JOIN decks deck ON c.deck_id = deck.id AND ($4 = '' OR deck.name = $4)
-	LEFT JOIN users u ON deck.user_id = u.id AND u.id = $3
+	LEFT JOIN decks deck ON c.deck_id = deck.id
+	LEFT JOIN users u ON deck.user_id = u.id
 	GROUP BY days.date
 	ORDER BY days.date
 	`
