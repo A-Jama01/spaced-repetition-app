@@ -3,6 +3,13 @@ import CardView from "@/components/CardView";
 import ReviewView from "@/components/ReviewView";
 import { Button } from "@/components/ui/button";
 import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger,
@@ -44,6 +51,7 @@ export default function Home() {
   const [front, setFront] = useState<string>("");
   const [sort, setSort] = useState<string>("id");
   const [page, setPage] = useState<number>(1);
+  const [statsDeck, setStatsDeck] = useState<string>("");
 
   let navigate = useNavigate();
   async function checkLoginStatus() {
@@ -336,6 +344,32 @@ export default function Home() {
               </Button>
             </div>
           )}
+          {currentSelection === SidebarSelection.Stats && (
+            <div>
+              <Select value={statsDeck} onValueChange={setStatsDeck}>
+                <SelectTrigger
+                  className="flex w-40 **:data-[slot=select-value]:block **:data-[slot=select-value]:truncate @[767px]/card:hidden"
+                  aria-label="Select a value"
+                >
+                  <SelectValue placeholder="Select a deck" />
+                </SelectTrigger>
+                <SelectContent className="rounded-xl">
+                  <SelectItem value={null as any} className="rounded-lg">
+                    None
+                  </SelectItem>
+                  {decks.map((deck) => (
+                    <SelectItem
+                      key={deck.id}
+                      value={`${deck.name}`}
+                      className="rounded-lg"
+                    >
+                      {deck.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </header>
         <div className="flex flex-1 flex-col">
           {currentSelection === SidebarSelection.Deck && !showReview && (
@@ -357,7 +391,9 @@ export default function Home() {
               reviewCard={reviewCard}
             />
           )}
-          {currentSelection === SidebarSelection.Stats && <StatsView />}
+          {currentSelection === SidebarSelection.Stats && (
+            <StatsView deck={statsDeck} />
+          )}
         </div>
       </SidebarInset>
     </SidebarProvider>

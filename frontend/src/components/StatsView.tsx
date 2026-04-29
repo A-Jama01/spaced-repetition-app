@@ -41,14 +41,14 @@ enum Duration {
   Year = "364",
 }
 
-export default function StatsView() {
+export default function StatsView({ deck }: { deck: string }) {
   const [forecastTimeRange, setForecastTimeRange] = useState<string>(
     Duration.Week,
   );
 
   const { isPending, isError, data, error } = useQuery({
-    queryKey: ["stats", forecastTimeRange],
-    queryFn: () => fetchStats(forecastTimeRange),
+    queryKey: ["stats", forecastTimeRange, deck],
+    queryFn: () => fetchStats(forecastTimeRange, deck),
   });
   if (isPending) {
     return <span>Loading...</span>;
@@ -125,34 +125,44 @@ export default function StatsView() {
 
   return (
     <div className="@container/main flex flex-1 flex-col gap-2">
-      <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-        <h1 className="scroll-m-20 text-2xl text-center font-semibold tracking-tight">
-          Today
-        </h1>
-        <div className="flex flex-row justify-evenly">
-          <div className="flex flex-col items-center">
-            <h2>Reviews</h2>
-            <div>{data.stats.review_count}</div>
-          </div>
-          <div className="flex flex-col items-center">
-            <h2>Retention Rate</h2>
-            <div>{data.stats.retention}%</div>
-          </div>
-        </div>
-        <h1 className="scroll-m-20 text-2xl text-center font-semibold tracking-tight">
-          Heatmap
-        </h1>
-        <div className="flex flex-row">
-          <CalendarHeatmap
-            startDate={startDate}
-            endDate={currentDate}
-            values={heatmapValues}
-            showWeekdayLabels={true}
-            classForValue={classForValue}
-            tooltipDataAttrs={getTooltipDataAttrs}
-          />
-          <Tooltip id="heatmap-tooltip" />
-        </div>
+      <div className="flex flex-col gap-4 py-4 md:gap-4 md:py-4">
+        <Card className="@container/card mx-5 px-4 lg:px-6">
+          <CardHeader>
+            <CardTitle>Today</CardTitle>
+            <CardDescription>Daily review metrics</CardDescription>
+            <CardAction></CardAction>
+          </CardHeader>
+          <CardContent className="px-2">
+            <div className="flex flex-row justify-evenly">
+              <div className="flex flex-col items-center">
+                <h1>Reviews</h1>
+                <div>{data.stats.review_count}</div>
+              </div>
+              <div className="flex flex-col items-center">
+                <h2>Retention Rate</h2>
+                <div>{data.stats.retention}%</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="@container/card mx-5 px-4 lg:px-6">
+          <CardHeader>
+            <CardTitle>Heatmap</CardTitle>
+            <CardDescription>Reviews from the past year</CardDescription>
+            <CardAction></CardAction>
+          </CardHeader>
+          <CardContent className="px-2 pt-4 sm:px-6 sm:pt-6">
+            <CalendarHeatmap
+              startDate={startDate}
+              endDate={currentDate}
+              values={heatmapValues}
+              showWeekdayLabels={true}
+              classForValue={classForValue}
+              tooltipDataAttrs={getTooltipDataAttrs}
+            />
+            <Tooltip id="heatmap-tooltip" />
+          </CardContent>
+        </Card>
         <Card className="@container/card mx-5 px-4 lg:px-6">
           <CardHeader>
             <CardTitle>Forecast</CardTitle>
