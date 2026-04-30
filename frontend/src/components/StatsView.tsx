@@ -58,31 +58,20 @@ export default function StatsView({ deck }: { deck: string }) {
     return <span>Error: {error.message}</span>;
   }
 
-  // (AJama) Get values to populate heatmap
-  const YEAR_SIZE = 366;
+  // TODO: move this heatmap stuff to its own component
   const currentDate = new Date();
   const startDate = new Date(currentDate);
   startDate.setFullYear(startDate.getFullYear() - 1);
 
-  const heatmapMap = new Map();
-  for (let i = 0; i < YEAR_SIZE; i++) {
-    const nextDate = new Date(currentDate);
-    nextDate.setDate(nextDate.getDate() - i);
-    heatmapMap.set(nextDate, 0);
-  }
-
-  for (let i = 0; i < data.stats.heatmap.length; i++) {
-    const heatmapCellDate = new Date(data.stats.heatmap[i].review_date);
-    heatmapMap.set(heatmapCellDate, data.stats.heatmap[i].reviews);
-  }
-
   const heatmapValues: HeatMapCell[] = [];
-  heatmapMap.forEach((value: number, key: Date) => {
+  for (let i = 0; i < data.stats.heatmap.length; i++) {
+    const dateValue = data.stats.heatmap[i].review_date.slice(0, 10);
+    const [year, month, day] = dateValue.split("-");
     heatmapValues.push({
-      date: key,
-      count: value,
+      date: new Date(year, month - 1, day),
+      count: data.stats.heatmap[i].reviews,
     });
-  });
+  }
 
   const maxHeatmapValue = Math.max(...heatmapValues.map((cell) => cell.count));
 
@@ -114,7 +103,7 @@ export default function StatsView({ deck }: { deck: string }) {
     };
   }
 
-  // (AJama) Forecast Chart
+  // Forecast Chart
   const chartConfig = {
     Due: {
       label: "Due Cards",

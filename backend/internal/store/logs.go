@@ -104,15 +104,31 @@ func (s *LogsStore) GetRetention(ctx context.Context, p StatsQueryParams) (float
 
 func (s *LogsStore) GetHeatMap(ctx context.Context, p StatsQueryParams) ([]*ReviewCell, error) {
 	query := `
-	SELECT DATE(l.reviewed_at AT TIME ZONE $1) AS date, COUNT(*) AS reviews FROM logs l
-	JOIN cards c ON l.card_id = c.id
-	JOIN decks d ON c.deck_id = d.id
-	JOIN users u ON d.user_id = u.id
-	WHERE u.id = $2
-	AND ($3 = '' OR d.name = $3)
-	AND l.reviewed_at >= NOW() - INTERVAL '1 year'
-	GROUP BY date
-	ORDER BY date`
+	WITH filtered_logs AS (
+	  SELECT l.id, l.reviewed_at
+	  FROM logs l
+	  JOIN cards c ON l.card_id = c.id
+	  JOIN decks d ON c.deck_id = d.id
+	  WHERE d.user_id = $2
+		AND ($3 = '' OR d.name = $3)
+		AND l.reviewed_at >= NOW() - INTERVAL '1 year'
+	)
+
+	SELECT 
+	  days.date,
+	  COUNT(fl.id) AS reviews
+	FROM generate_series(
+	  (NOW() AT TIME ZONE $1)::date - INTERVAL '1 year',
+	  (NOW() AT TIME ZONE $1)::date,
+	  INTERVAL '1 day'
+	) AS days(date)
+
+	LEFT JOIN filtered_logs fl
+	  ON DATE(fl.reviewed_at AT TIME ZONE $1) = days.date
+
+	GROUP BY days.date
+	ORDER BY days.date;
+	`
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
