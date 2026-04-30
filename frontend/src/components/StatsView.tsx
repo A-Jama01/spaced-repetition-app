@@ -234,7 +234,13 @@ export default function StatsView({ deck }: { deck: string }) {
                   content={
                     <ChartTooltipContent
                       labelFormatter={(value) => {
-                        return new Date(value).toLocaleDateString("en-US", {
+                        const dateValue = value.slice(0, 10);
+                        const [year, month, day] = dateValue.split("-");
+                        return new Date(
+                          year,
+                          month - 1,
+                          day,
+                        ).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",
                         });
