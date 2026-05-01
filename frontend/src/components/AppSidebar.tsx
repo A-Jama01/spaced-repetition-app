@@ -84,7 +84,7 @@ export function AppSidebar({
       }
 
       const data = await response.json();
-      setDecks(data.decks);
+      setDecks(data.decks ?? []);
       console.log(data.decks);
     } catch (err) {
       if (err instanceof Error) {

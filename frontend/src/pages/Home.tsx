@@ -96,7 +96,7 @@ export default function Home() {
       }
 
       const data = await response.json();
-      setCards(data.cards);
+      setCards(data.cards ?? []);
       console.log(data.cards);
     } catch (err) {
       if (err instanceof Error) {
@@ -139,7 +139,7 @@ export default function Home() {
       const data = await response.json();
       const newCard: Flashcard = {
         id: data.card.id,
-        deckID: data.card.id,
+        deckID: data.card.deck_id,
         front: data.card.front,
         back: data.card.back,
       };
@@ -149,6 +149,7 @@ export default function Home() {
       return null;
     } catch (err) {
       if (err instanceof Error) {
+        console.log(err);
         toast.error("Error creating card.");
         return err;
       }
@@ -357,15 +358,16 @@ export default function Home() {
                   <SelectItem value={null as any} className="rounded-lg">
                     None
                   </SelectItem>
-                  {decks.map((deck) => (
-                    <SelectItem
-                      key={deck.id}
-                      value={`${deck.name}`}
-                      className="rounded-lg"
-                    >
-                      {deck.name}
-                    </SelectItem>
-                  ))}
+                  {decks &&
+                    decks.map((deck) => (
+                      <SelectItem
+                        key={deck.id}
+                        value={`${deck.name}`}
+                        className="rounded-lg"
+                      >
+                        {deck.name}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>

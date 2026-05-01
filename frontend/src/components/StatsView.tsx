@@ -103,7 +103,6 @@ export default function StatsView({ deck }: { deck: string }) {
     };
   }
 
-  // Forecast Chart
   const chartConfig = {
     Due: {
       label: "Due Cards",
