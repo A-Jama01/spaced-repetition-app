@@ -75,7 +75,6 @@ export default function Flashcards({
     },
   });
 
-  // Issue with card changing deck_id to deckID because of Flashcard Type
   const updateCardMutation = useMutation({
     mutationFn: ({
       deckID,

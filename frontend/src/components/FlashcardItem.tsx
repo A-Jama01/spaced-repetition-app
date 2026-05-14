@@ -37,20 +37,27 @@ export default function FlashcardItem({
 }: FlashcardItemProps) {
   const [cardSide, setCardSide] = useState<"front" | "back">("front");
   const [openDropdown, setOpenDropdown] = useState<boolean>(false);
+  const [openDialog, setOpenDialog] = useState<boolean>(false);
   const [openEdit, setOpenEdit] = useState<boolean>(false);
 
   const title = "Edit Flashcard";
   const operationName = "Update";
 
-  function handleDelete(cardID: number): void {
-    deleteCard(cardID).then(() => setOpenDropdown(false));
+  async function handleDelete(cardID: number): Promise<void> {
+    setOpenDropdown(false);
+    setOpenDialog(false);
+    await deleteCard(cardID);
   }
 
   return (
     <Dialog
-      onOpenChange={() => {
-        setCardSide("front");
-        setOpenEdit(false);
+      open={openDialog}
+      onOpenChange={(open) => {
+        if (!open) {
+          setCardSide("front");
+          setOpenEdit(false);
+        }
+        setOpenDialog(open);
       }}
     >
       <DialogTrigger asChild>
@@ -63,7 +70,11 @@ export default function FlashcardItem({
         </Card>
       </DialogTrigger>
       <DialogContent className="max-h-9/10 overflow-auto">
-        <DropdownMenu open={openDropdown} onOpenChange={setOpenDropdown}>
+        <DropdownMenu
+          modal={false}
+          open={openDropdown}
+          onOpenChange={setOpenDropdown}
+        >
           <DropdownMenuTrigger asChild>
             <Ellipsis className="rounded-md hover:bg-zinc-200" />
           </DropdownMenuTrigger>
