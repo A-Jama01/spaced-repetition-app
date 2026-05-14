@@ -66,7 +66,7 @@ export default function Home() {
     checkLoginStatus();
   }, []);
 
-  async function fetchCards() {
+  async function fetchCards(paginating: boolean) {
     if (selectedDeck == null) {
       return;
     }
@@ -96,7 +96,11 @@ export default function Home() {
       }
 
       const data = await response.json();
-      setCards(data.cards ?? []);
+      if (paginating) {
+        setCards((prev) => [...prev, ...(data.cards ?? [])]);
+      } else {
+        setCards(data.cards ?? []);
+      }
       console.log(data.cards);
     } catch (err) {
       if (err instanceof Error) {
@@ -106,15 +110,35 @@ export default function Home() {
     }
   }
   useEffect(() => {
-    fetchCards();
+    setPage(1);
+    fetchCards(false);
   }, [selectedDeck, sort, front]);
 
-  async function createCard(
-    front: string,
-    back: string,
-  ): Promise<null | Error> {
+  // Paginating Cards
+  function handleScroll() {
+    const bottom =
+      Math.ceil(window.innerHeight + window.scrollY) >=
+      document.documentElement.scrollHeight - 200;
+
+    if (bottom) {
+      setPage((prev) => prev + 1);
+    }
+  }
+
+  useEffect(() => {
+    fetchCards(true);
+  }, [page]);
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  async function createCard(front: string, back: string): Promise<void> {
     if (selectedDeck == null) {
-      return null;
+      return;
     }
 
     try {
@@ -146,14 +170,14 @@ export default function Home() {
       setCards([newCard, ...cards]);
       toast.success("Card created successfully.");
 
-      return null;
+      return;
     } catch (err) {
       if (err instanceof Error) {
         console.log(err);
         toast.error("Error creating card.");
-        return err;
+        return;
       }
-      return new Error("Error creating card");
+      return;
     }
   }
 
@@ -330,7 +354,7 @@ export default function Home() {
         setSidebarSelection={setCurrentSelection}
         setShowReview={setShowReview}
       />
-      <SidebarInset>
+      <SidebarInset className="h-screen overflow-hidden">
         <header className="flex flex-row justify-between h-16 shrink-0 items-center border-b px-2">
           <div>
             <SidebarTrigger className="ml-1" />
@@ -373,19 +397,22 @@ export default function Home() {
             </div>
           )}
         </header>
-        <div className="flex flex-1 flex-col">
-          {currentSelection === SidebarSelection.Deck && !showReview && (
-            <CardView
-              cards={cards}
-              sort={sort}
-              setSort={setSort}
-              front={front}
-              setFront={setFront}
-              createCard={createCard}
-              deleteCard={deleteCard}
-              updateCard={updateCard}
-            />
-          )}
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {currentSelection === SidebarSelection.Deck &&
+            !showReview &&
+            selectedDeck && (
+              <CardView
+                cards={cards}
+                deckID={selectedDeck.id}
+                sort={sort}
+                setSort={setSort}
+                front={front}
+                setFront={setFront}
+                createCard={createCard}
+                deleteCard={deleteCard}
+                updateCard={updateCard}
+              />
+            )}
           {currentSelection === SidebarSelection.Deck && showReview && (
             <ReviewView
               dueCards={dueCards}

@@ -35,11 +35,12 @@ import CardForm from "./CardForm";
 
 interface CardViewProps {
   cards: Flashcard[];
+  deckID: number;
   sort: string;
   setSort: React.Dispatch<React.SetStateAction<string>>;
   front: string;
   setFront: React.Dispatch<React.SetStateAction<string>>;
-  createCard(front: string, back: string): Promise<null | Error>;
+  createCard(front: string, back: string): Promise<void>;
   deleteCard(cardID: number): Promise<null | Error>;
   updateCard(
     front: string,
@@ -50,6 +51,7 @@ interface CardViewProps {
 
 export default function CardView({
   cards,
+  deckID,
   sort,
   setSort,
   front,
@@ -62,7 +64,7 @@ export default function CardView({
   const operationName = "Create";
 
   return (
-    <div className="grid grid-cols-1">
+    <div className="flex flex-col h-full">
       <div className="flex justify-between my-2 mx-3">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -130,11 +132,16 @@ export default function CardView({
           </DialogContent>
         </Dialog>
       </div>
-      <Flashcards
-        cards={cards}
-        deleteCard={deleteCard}
-        updateCard={updateCard}
-      />
+      <div className="flex-1 overflow-y-auto">
+        <Flashcards
+          cards={cards}
+          deckID={deckID}
+          front={front}
+          sort={sort}
+          deleteCard={deleteCard}
+          updateCard={updateCard}
+        />
+      </div>
     </div>
   );
 }

@@ -112,7 +112,7 @@ export default function StatsView({ deck }: { deck: string }) {
   console.log(data.stats);
 
   return (
-    <div className="@container/main flex flex-1 flex-col gap-2">
+    <div className="@container/main flex flex-1 flex-col gap-2 overflow-y-auto">
       <div className="flex flex-col gap-4 py-4 md:gap-4 md:py-4">
         <Card className="@container/card mx-5 px-4 lg:px-6">
           <CardHeader>

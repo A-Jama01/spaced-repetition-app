@@ -19,11 +19,7 @@ interface CardFormProps {
   operationName: string;
   card?: Flashcard;
   children: React.ReactNode;
-  cardOperation(
-    front?: string,
-    back?: string,
-    cardID?: number,
-  ): Promise<null | Error>;
+  cardOperation(front: string, back: string): Promise<void>;
 }
 
 export default function CardForm({
@@ -40,18 +36,16 @@ export default function CardForm({
   const [showPreview, setShowPreview] = useState<boolean>(false);
 
   async function handleSubmit() {
-    let err;
-    if (operationName === "Create") {
-      err = await cardOperation(frontInput, backInput);
-    } else if (operationName === "Update" && card) {
-      err = await cardOperation(frontInput, backInput, card.id);
-    } else if (operationName === "Delete" && card) {
-      err = await cardOperation(undefined, undefined, card.id);
-    }
-    if (err === null) {
-      setFrontInput("");
-      setBackInput("");
+    // TODO: create may be broken after refactor. erase when complete.
+    try {
+      await cardOperation(frontInput, backInput);
+      if (operationName === "Create") {
+        setFrontInput("");
+        setBackInput("");
+      }
       setShowPreview(false);
+    } catch (err) {
+      return;
     }
   }
 

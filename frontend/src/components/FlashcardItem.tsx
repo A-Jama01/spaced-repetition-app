@@ -26,12 +26,8 @@ import CardForm from "./CardForm";
 
 interface FlashcardItemProps {
   card: Flashcard;
-  deleteCard(cardID: number): Promise<null | Error>;
-  updateCard(
-    front: string,
-    back: string,
-    cardID: number,
-  ): Promise<null | Error>;
+  deleteCard(cardID: number): Promise<void>;
+  updateCard(front: string, back: string): Promise<void>;
 }
 
 export default function FlashcardItem({
@@ -86,8 +82,7 @@ export default function FlashcardItem({
                 )}
               </DropdownMenuItem>
               <DropdownMenuItem
-                onSelect={(e) => {
-                  e.preventDefault();
+                onSelect={() => {
                   handleDelete(card.id);
                 }}
               >
